@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0057)file:///C:/Users/ADMIN/Downloads/catalogo_firebase_4.html -->
+<!-- saved from url=(0057)file:///C:/Users/ADMIN/Downloads/catalogo_firebase_5.html -->
 <html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39001,47 +39001,60 @@ function setFotoStatus(id,cls,txt){
   if(s){s.className='foto-card-status '+cls;s.textContent=txt;}
 }
 
+const GOOGLE_API_KEY='AIzaSyA8k8y5i1TyikPlo_ZGuGC6jvMsHkuja8A';
+const GOOGLE_CX='83531102606eb4e25';
+
 async function buscarImagemGoogle(nome,categoria){
-  // Usa SerpAPI via proxy público ou DuckDuckGo image search
   const q=encodeURIComponent(`${nome} ${categoria||'material construção'} produto`);
   try{
-    // Tenta buscar via API do Claude com web search
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:300,
-        tools:[{type:'web_search_20250305',name:'web_search'}],
-        messages:[{role:'user',content:`Busque uma imagem de produto para: "${nome}" categoria "${categoria||'material construção'}". Retorne APENAS a URL direta de uma imagem (terminando em .jpg .jpeg .png ou .webp). Nenhum texto adicional.`}]
-      })
-    });
+    const url=`https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CX}&q=${q}&searchType=image&num=5&imgType=photo&safe=active`;
+    const resp=await fetch(url);
     const data=await resp.json();
-    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-    const m=text.match(/https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'<>]*)?/i);
-    return m?m[0]:null;
-  }catch(e){return null;}
+    if(data.error){addFotoLog('⚠️ API erro: '+data.error.message);return null;}
+    const items=data.items||[];
+    // Pega a primeira imagem que não seja SVG ou GIF
+    for(const item of items){
+      const link=item.link||'';
+      if(!link.match(/\.svg$|\.gif$/i)) return link;
+    }
+    return null;
+  }catch(e){addFotoLog('⚠️ Erro busca: '+e.message);return null;}
 }
 
 async function imgUrlToBase64(url){
+  // Tenta direto primeiro, depois via proxy CORS
+  const tentativas=[
+    url,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+  ];
+  for(const src of tentativas){
+    const result=await tentarCarregar(src);
+    if(result) return result;
+  }
+  return null;
+}
+
+function tentarCarregar(src){
   return new Promise(resolve=>{
     const img=new Image();
     img.crossOrigin='anonymous';
     img.onload=()=>{
       try{
         const c=document.createElement('canvas');
-        const MAX=400;
-        let w=img.naturalWidth,h=img.naturalHeight;
+        const MAX=500;
+        let w=img.naturalWidth||300,h=img.naturalHeight||300;
         if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
         if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
         c.width=w;c.height=h;
         c.getContext('2d').drawImage(img,0,0,w,h);
-        resolve(c.toDataURL('image/jpeg',0.75));
+        const b64=c.toDataURL('image/jpeg',0.8);
+        resolve(b64.length>1000?b64:null);
       }catch{resolve(null);}
     };
     img.onerror=()=>resolve(null);
-    img.src=url+'?t='+Date.now();
-    setTimeout(()=>resolve(null),10000);
+    img.src=src;
+    setTimeout(()=>resolve(null),8000);
   });
 }
 
