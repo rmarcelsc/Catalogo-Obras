@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0057)file:///C:/Users/ADMIN/Downloads/catalogo_firebase_6.html -->
+<!-- saved from url=(0057)file:///C:/Users/ADMIN/Downloads/catalogo_firebase_7.html -->
 <html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -151,11 +151,12 @@ header p{font-size:13px;color:#666}
       <div class="autocomplete" id="autocomplete" style="display:none"></div>
     </div>
     <div class="action-bar">
-      <span>Filtrar:</span>
+      <span>Estoque:</span>
       <button class="filter-btn active" onclick="setFilter(&#39;todos&#39;,this)">Todos</button>
       <button class="filter-btn" onclick="setFilter(&#39;disponivel&#39;,this)">Com estoque</button>
       <button class="filter-btn" onclick="setFilter(&#39;zerado&#39;,this)">Sem estoque</button>
     </div>
+    <div class="action-bar" id="categoriaBar" style="margin-bottom:1rem;flex-wrap:wrap"><span>Categoria:</span><button class="filter-btn active" onclick="setCategoria(&#39;&#39;,this)">Todas</button><button class="filter-btn " onclick="setCategoria(&#39;04.001 - Materiais Civis&#39;,this)">04.001 - Materiais Civis</button><button class="filter-btn " onclick="setCategoria(&#39;04.002 - Materiais Elétricos&#39;,this)">04.002 - Materiais Elétricos</button><button class="filter-btn " onclick="setCategoria(&#39;04.003 - Materiais de Acabamentos/Cobertura&#39;,this)">04.003 - Materiais de Acabamentos/Cobertura</button><button class="filter-btn " onclick="setCategoria(&#39;04.005 - Materiais/Estruturas Metálicas&#39;,this)">04.005 - Materiais/Estruturas Metálicas</button><button class="filter-btn " onclick="setCategoria(&#39;04.006 - Materiais Hidrossanitários&#39;,this)">04.006 - Materiais Hidrossanitários</button><button class="filter-btn " onclick="setCategoria(&#39;04.007 - Madeiramento&#39;,this)">04.007 - Madeiramento</button><button class="filter-btn " onclick="setCategoria(&#39;05.001 - EPI/EPC&#39;,this)">05.001 - EPI/EPC</button><button class="filter-btn " onclick="setCategoria(&#39;08.001 - Equipamentos/Maquinas Adquiridos&#39;,this)">08.001 - Equipamentos/Maquinas Adquiridos</button><button class="filter-btn " onclick="setCategoria(&#39;10001 - Ferramentas Adquiridas (Consumo)&#39;,this)">10001 - Ferramentas Adquiridas (Consumo)</button></div>
     <div class="grid" id="prodGrid"><div class="card" onclick="abrirModal(&#39;00JRAe6TbU3r4j959RQ9&#39;)">
       <div class="card-img"><i class="ti ti-photo-off" style="font-size:30px"></i></div>
       <div class="card-body">
@@ -38623,6 +38624,7 @@ function initListeners(){
 
 function renderAll(){
   renderGrid();
+  renderCategorias();
   renderEstoques();
   renderMovimentacaoSelects();
   atualizarSelectEstoqueCadastro();
@@ -38641,6 +38643,24 @@ function getTotalQtd(p){
   return Object.values(p.estoques||{}).reduce((a,b)=>a+(b||0),0);
 }
 
+let categoriaAtiva = '';
+
+function renderCategorias(){
+  const bar = document.getElementById('categoriaBar');
+  if(!bar) return;
+  const cats = [...new Set(produtos.map(p=>p.categoria||'').filter(Boolean))].sort();
+  const btns = cats.map(c=>`<button class="filter-btn ${categoriaAtiva===c?'active':''}" onclick="setCategoria('${c.replace(/'/g,"\'")}',this)">${c}</button>`).join('');
+  // Keep "Todas" button and replace rest
+  bar.innerHTML = `<span>Categoria:</span><button class="filter-btn ${categoriaAtiva===''?'active':''}" onclick="setCategoria('',this)">Todas</button>${btns}`;
+}
+
+window.setCategoria = function(cat, btn){
+  categoriaAtiva = cat;
+  document.querySelectorAll('#categoriaBar .filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderGrid();
+}
+
 function renderGrid(query=''){
   const grid = document.getElementById('prodGrid');
   let lista = produtos.filter(p=>{
@@ -38648,7 +38668,8 @@ function renderGrid(query=''){
     const match = !q || p.nome.toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q) || (p.categoria||'').toLowerCase().includes(q);
     const total = getTotalQtd(p);
     const fm = filtroAtivo==='todos' || (filtroAtivo==='disponivel'&&total>0) || (filtroAtivo==='zerado'&&total===0);
-    return match && fm;
+    const cm = !categoriaAtiva || (p.categoria||'')=== categoriaAtiva;
+    return match && fm && cm;
   });
   if(!lista.length){
     grid.innerHTML='<div class="empty"><i class="ti ti-package-off"></i>Nenhum produto encontrado</div>';
