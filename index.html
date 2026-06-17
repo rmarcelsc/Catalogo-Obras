@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0057)file:///C:/Users/ADMIN/Downloads/catalogo_firebase_7.html -->
+<!-- saved from url=(0057)file:///C:/Users/ADMIN/Downloads/catalogo_firebase_8.html -->
 <html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -150,13 +150,25 @@ header p{font-size:13px;color:#666}
       <input type="text" id="searchInput" placeholder="Buscar por nome, código ou categoria..." autocomplete="off" oninput="handleSearch()" onfocus="handleSearch()">
       <div class="autocomplete" id="autocomplete" style="display:none"></div>
     </div>
-    <div class="action-bar">
-      <span>Estoque:</span>
-      <button class="filter-btn active" onclick="setFilter(&#39;todos&#39;,this)">Todos</button>
-      <button class="filter-btn" onclick="setFilter(&#39;disponivel&#39;,this)">Com estoque</button>
-      <button class="filter-btn" onclick="setFilter(&#39;zerado&#39;,this)">Sem estoque</button>
+    <div style="display:flex;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:13px;color:#666;white-space:nowrap">Categoria:</label>
+        <select id="selectCategoria" onchange="setCategoria(this.value)" style="padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;outline:none;cursor:pointer"><option value="">Todas as categorias</option><option value="04.001 - Materiais Civis">04.001 - Materiais Civis</option><option value="04.002 - Materiais Elétricos">04.002 - Materiais Elétricos</option><option value="04.003 - Materiais de Acabamentos/Cobertura">04.003 - Materiais de Acabamentos/Cobertura</option><option value="04.005 - Materiais/Estruturas Metálicas">04.005 - Materiais/Estruturas Metálicas</option><option value="04.006 - Materiais Hidrossanitários">04.006 - Materiais Hidrossanitários</option><option value="04.007 - Madeiramento">04.007 - Madeiramento</option><option value="05.001 - EPI/EPC">05.001 - EPI/EPC</option><option value="08.001 - Equipamentos/Maquinas Adquiridos">08.001 - Equipamentos/Maquinas Adquiridos</option><option value="10001 - Ferramentas Adquiridas (Consumo)">10001 - Ferramentas Adquiridas (Consumo)</option></select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:13px;color:#666;white-space:nowrap">Estoque:</label>
+        <select id="selectEstoque" onchange="setEstoqueFiltro(this.value)" style="padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;outline:none;cursor:pointer"><option value="">Todos os estoques</option><option value="CD Santos Dumont - Lauro de Freitas - BA">CD Santos Dumont - Lauro de Freitas - BA</option><option value="CD Cabo de Sto Agostinho">CD Cabo de Sto Agostinho</option><option value="Loja - Natal">Loja - Natal</option><option value="Depósito Central">Depósito Central</option><option value="CD Garanhuns - 25">CD Garanhuns - 25</option><option value="CD Alpargatas - Natal">CD Alpargatas - Natal</option><option value="Minalba">Minalba</option><option value="Microlins - Natal">Microlins - Natal</option><option value="Loja - Imbiribeira">Loja - Imbiribeira</option><option value="CD Lauro de Freitas - BA">CD Lauro de Freitas - BA</option><option value="Home Center Ferreira Costa - Fortaleza">Home Center Ferreira Costa - Fortaleza</option></select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:13px;color:#666;white-space:nowrap">Disponibilidade:</label>
+        <select id="selectDisponibilidade" onchange="setFilter(this.value)" style="padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;outline:none;cursor:pointer">
+          <option value="todos">Todos</option>
+          <option value="disponivel">Com estoque</option>
+          <option value="zerado">Sem estoque</option>
+        </select>
+      </div>
+      <button class="btn" onclick="limparFiltros()" style="font-size:12px;padding:6px 12px"><i class="ti ti-x"></i> Limpar filtros</button>
     </div>
-    <div class="action-bar" id="categoriaBar" style="margin-bottom:1rem;flex-wrap:wrap"><span>Categoria:</span><button class="filter-btn active" onclick="setCategoria(&#39;&#39;,this)">Todas</button><button class="filter-btn " onclick="setCategoria(&#39;04.001 - Materiais Civis&#39;,this)">04.001 - Materiais Civis</button><button class="filter-btn " onclick="setCategoria(&#39;04.002 - Materiais Elétricos&#39;,this)">04.002 - Materiais Elétricos</button><button class="filter-btn " onclick="setCategoria(&#39;04.003 - Materiais de Acabamentos/Cobertura&#39;,this)">04.003 - Materiais de Acabamentos/Cobertura</button><button class="filter-btn " onclick="setCategoria(&#39;04.005 - Materiais/Estruturas Metálicas&#39;,this)">04.005 - Materiais/Estruturas Metálicas</button><button class="filter-btn " onclick="setCategoria(&#39;04.006 - Materiais Hidrossanitários&#39;,this)">04.006 - Materiais Hidrossanitários</button><button class="filter-btn " onclick="setCategoria(&#39;04.007 - Madeiramento&#39;,this)">04.007 - Madeiramento</button><button class="filter-btn " onclick="setCategoria(&#39;05.001 - EPI/EPC&#39;,this)">05.001 - EPI/EPC</button><button class="filter-btn " onclick="setCategoria(&#39;08.001 - Equipamentos/Maquinas Adquiridos&#39;,this)">08.001 - Equipamentos/Maquinas Adquiridos</button><button class="filter-btn " onclick="setCategoria(&#39;10001 - Ferramentas Adquiridas (Consumo)&#39;,this)">10001 - Ferramentas Adquiridas (Consumo)</button></div>
     <div class="grid" id="prodGrid"><div class="card" onclick="abrirModal(&#39;00JRAe6TbU3r4j959RQ9&#39;)">
       <div class="card-img"><i class="ti ti-photo-off" style="font-size:30px"></i></div>
       <div class="card-body">
@@ -38625,6 +38637,7 @@ function initListeners(){
 function renderAll(){
   renderGrid();
   renderCategorias();
+  renderEstoqueFiltro();
   renderEstoques();
   renderMovimentacaoSelects();
   atualizarSelectEstoqueCadastro();
@@ -38645,19 +38658,41 @@ function getTotalQtd(p){
 
 let categoriaAtiva = '';
 
+let estoqueFiltroCat = '';
+
 function renderCategorias(){
-  const bar = document.getElementById('categoriaBar');
-  if(!bar) return;
+  const sel = document.getElementById('selectCategoria');
+  if(!sel) return;
   const cats = [...new Set(produtos.map(p=>p.categoria||'').filter(Boolean))].sort();
-  const btns = cats.map(c=>`<button class="filter-btn ${categoriaAtiva===c?'active':''}" onclick="setCategoria('${c.replace(/'/g,"\'")}',this)">${c}</button>`).join('');
-  // Keep "Todas" button and replace rest
-  bar.innerHTML = `<span>Categoria:</span><button class="filter-btn ${categoriaAtiva===''?'active':''}" onclick="setCategoria('',this)">Todas</button>${btns}`;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c=>`<option value="${c}" ${current===c?'selected':''}>${c}</option>`).join('');
 }
 
-window.setCategoria = function(cat, btn){
+function renderEstoqueFiltro(){
+  const sel = document.getElementById('selectEstoque');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Todos os estoques</option>' + estoques.map(e=>`<option value="${e}" ${current===e?'selected':''}>${e}</option>`).join('');
+}
+
+window.setCategoria = function(cat){
   categoriaAtiva = cat;
-  document.querySelectorAll('#categoriaBar .filter-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
+  renderGrid();
+}
+
+window.setEstoqueFiltro = function(est){
+  estoqueFiltroCat = est;
+  renderGrid();
+}
+
+window.limparFiltros = function(){
+  categoriaAtiva = '';
+  estoqueFiltroCat = '';
+  filtroAtivo = 'todos';
+  document.getElementById('selectCategoria').value = '';
+  document.getElementById('selectEstoque').value = '';
+  document.getElementById('selectDisponibilidade').value = 'todos';
+  document.getElementById('searchInput').value = '';
   renderGrid();
 }
 
@@ -38669,7 +38704,8 @@ function renderGrid(query=''){
     const total = getTotalQtd(p);
     const fm = filtroAtivo==='todos' || (filtroAtivo==='disponivel'&&total>0) || (filtroAtivo==='zerado'&&total===0);
     const cm = !categoriaAtiva || (p.categoria||'')=== categoriaAtiva;
-    return match && fm && cm;
+    const em = !estoqueFiltroCat || (p.estoques && (p.estoques[estoqueFiltroCat]||0) > 0);
+    return match && fm && cm && em;
   });
   if(!lista.length){
     grid.innerHTML='<div class="empty"><i class="ti ti-package-off"></i>Nenhum produto encontrado</div>';
@@ -38710,10 +38746,8 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('.search-wrap')) document.getElementById('autocomplete').style.display='none';
 });
 
-window.setFilter = function(f,btn){
+window.setFilter = function(f){
   filtroAtivo=f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
   renderGrid();
 }
 
