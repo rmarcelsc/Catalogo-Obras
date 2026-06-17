@@ -527,14 +527,35 @@ function renderEstoques(){
   const lista=document.getElementById('listaEstoques');
   if(!lista) return;
   if(!estoques.length){lista.innerHTML='<p style="font-size:14px;color:#aaa">Nenhum estoque cadastrado.</p>';return;}
-  lista.innerHTML=estoques.map((e,i)=>{
-    const total=produtos.reduce((acc,p)=>acc+(p.estoques&&p.estoques[e]?p.estoques[e]:0),0);
+  lista.innerHTML=estoques.map((e)=>{
     const itens=produtos.filter(p=>p.estoques&&(p.estoques[e]||0)>0).length;
-    return `<div class="estoque-item">
-      <div><div class="name">${e}</div><div class="meta">${itens} tipo(s) · ${total} unidades no total</div></div>
-      <button class="btn btn-danger" onclick="removerEstoque('${e}')" style="padding:5px 10px;font-size:12px"><i class="ti ti-trash"></i></button>
+    const esc=e.replace(/'/g,"\\'");
+    return `<div class="estoque-item" style="cursor:pointer" onclick="abrirModalEstoque('${esc}')">
+      <div><div class="name">${e}</div><div class="meta">${itens} item(ns) distinto(s)</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <i class="ti ti-chevron-right" style="color:#bbb;font-size:16px"></i>
+        <button class="btn btn-danger" onclick="event.stopPropagation();removerEstoque('${esc}')" style="padding:5px 10px;font-size:12px"><i class="ti ti-trash"></i></button>
+      </div>
     </div>`;
   }).join('');
+}
+
+window.abrirModalEstoque = function(nomeEstoque){
+  const itens = produtos.filter(p=>p.estoques&&(p.estoques[nomeEstoque]||0)>0).sort((a,b)=>a.nome.localeCompare(b.nome));
+  const rows = itens.map(p=>`<tr onclick="fecharModal();setTimeout(()=>abrirModal('${p.id}'),100)" style="cursor:pointer"><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0">${p.foto?`<img src="${p.foto}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px">`:''}<span style="font-weight:500">${p.nome}</span>${p.categoria?`<span style="font-size:11px;color:#aaa;margin-left:6px">${p.categoria}</span>`:''}</td><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0;white-space:nowrap;font-weight:600;color:#2d7a3a">${p.estoques[nomeEstoque]} ${p.unidade}</td></tr>`).join('');
+  document.getElementById('modal').innerHTML=`
+    <div class="modal-header">
+      <h2><i class="ti ti-building-warehouse" style="margin-right:8px;color:#aaa"></i>${nomeEstoque}</h2>
+      <button class="close-btn" onclick="fecharModal()">&times;</button>
+    </div>
+    <p style="font-size:13px;color:#888;margin-bottom:1rem">${itens.length} item(ns) distinto(s)</p>
+    ${itens.length===0?'<p style="color:#aaa;font-size:14px">Nenhum item neste estoque.</p>':`<input type="text" placeholder="Filtrar itens..." oninput="filtrarItensEstoque(this.value,'${nomeEstoque.replace(/'/g,"\'")}')" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none;margin-bottom:1rem"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:6px 10px;font-size:12px;color:#888;border-bottom:1px solid #f0f0e8">Produto</th><th style="text-align:left;padding:6px 10px;font-size:12px;color:#888;border-bottom:1px solid #f0f0e8">Qtd</th></tr></thead><tbody id="corpoTabelaEstoque">${rows}</tbody></table>`}`;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+window.filtrarItensEstoque = function(query,nomeEstoque){
+  const itens=produtos.filter(p=>p.estoques&&(p.estoques[nomeEstoque]||0)>0).filter(p=>p.nome.toLowerCase().includes(query.toLowerCase())||(p.categoria||'').toLowerCase().includes(query.toLowerCase())).sort((a,b)=>a.nome.localeCompare(b.nome));
+  document.getElementById('corpoTabelaEstoque').innerHTML=itens.map(p=>`<tr onclick="fecharModal();setTimeout(()=>abrirModal('${p.id}'),100)" style="cursor:pointer"><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0"><span style="font-weight:500">${p.nome}</span>${p.categoria?`<span style="font-size:11px;color:#aaa;margin-left:6px">${p.categoria}</span>`:''}</td><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0;white-space:nowrap;font-weight:600;color:#2d7a3a">${p.estoques[nomeEstoque]} ${p.unidade}</td></tr>`).join('');
 }
 
 window.adicionarEstoque = async function(){
