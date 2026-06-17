@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0057)file:///C:/Users/ADMIN/Downloads/catalogo_firebase_5.html -->
+<!-- saved from url=(0057)file:///C:/Users/ADMIN/Downloads/catalogo_firebase_6.html -->
 <html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38729,7 +38729,11 @@ window.abrirModal = function(id){
     <div style="display:flex;gap:8px;margin-top:1.25rem;flex-wrap:wrap">
       <button class="btn btn-danger" onclick="excluirProduto('${p.id}')"><i class="ti ti-trash"></i> Excluir</button>
       <button class="btn" onclick="fecharModal();showPage('movimentacao',document.querySelectorAll('.nav button')[3])"><i class="ti ti-transfer"></i> Movimentar</button>
-    </div>`;
+      <button class="btn" onclick="document.getElementById('uploadFotoModal').click()"><i class="ti ti-camera"></i> Adicionar foto</button>
+      ${p.foto?`<button class="btn btn-danger" onclick="removerFotoProduto('${p.id}')"><i class="ti ti-photo-off"></i> Remover foto</button>`:''}
+    </div>
+    <input type="file" id="uploadFotoModal" accept="image/*" style="display:none" onchange="salvarFotoModal(this,'${p.id}')">
+    <img id="previewFotoModal" style="display:none;width:100%;height:140px;object-fit:cover;border-radius:8px;margin-top:10px">`;
   document.getElementById('modalBg').classList.add('open');
 }
 
@@ -38740,6 +38744,52 @@ window.excluirProduto = async function(id){
   await deleteDoc(doc(db,'produtos',id));
   fecharModal();
   notify('Produto excluído');
+}
+
+window.salvarFotoModal = async function(input, id){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 1.5*1024*1024){notify('Foto muito grande. Use imagens até 1.5MB.');return;}
+  const reader = new FileReader();
+  reader.onload = async e => {
+    // Comprime a imagem antes de salvar
+    const b64 = await comprimirImagem(e.target.result, 500);
+    if(!b64){notify('Erro ao processar imagem.');return;}
+    setSyncStatus('syncing');
+    await updateDoc(doc(db,'produtos',id),{foto:b64});
+    // Atualiza preview no modal
+    const preview = document.getElementById('previewFotoModal');
+    if(preview){preview.src=b64;preview.style.display='block';}
+    // Atualiza imagem no modal header
+    const prodImg = document.querySelector('.prod-img-big');
+    if(prodImg){prodImg.innerHTML=`<img src="${b64}" alt="foto" style="width:100%;height:100%;object-fit:cover">`;}
+    notify('Foto salva com sucesso!');
+  };
+  reader.readAsDataURL(file);
+}
+
+window.removerFotoProduto = async function(id){
+  if(!confirm('Remover foto deste produto?')) return;
+  await updateDoc(doc(db,'produtos',id),{foto:null});
+  fecharModal();
+  notify('Foto removida');
+}
+
+function comprimirImagem(base64, maxSize){
+  return new Promise(resolve=>{
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      let w=img.width, h=img.height;
+      if(w>maxSize){h=Math.round(h*maxSize/w);w=maxSize;}
+      if(h>maxSize){w=Math.round(w*maxSize/h);h=maxSize;}
+      c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(c.toDataURL('image/jpeg',0.82));
+    };
+    img.onerror=()=>resolve(null);
+    img.src=base64;
+  });
 }
 
 window.previewFoto = function(input){
