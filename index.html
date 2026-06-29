@@ -107,6 +107,19 @@ header p{font-size:13px;color:#666}
 .tag-trans{background:#fef3cd;color:#856404}
 .notify{position:fixed;bottom:1.5rem;right:1.5rem;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .notify.show{opacity:1}
+.view-toggle{display:flex;gap:6px;margin-left:auto}
+.view-toggle button{padding:5px 10px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;font-size:13px;color:#666}
+.view-toggle button.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.report-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e8e8e0}
+.report-table th{background:#f4f4f0;padding:9px 12px;text-align:left;font-weight:600;font-size:12px;color:#666;border-bottom:1px solid #e8e8e0;white-space:nowrap}
+.report-table td{padding:8px 12px;border-bottom:1px solid #f4f4f0;vertical-align:middle}
+.report-table tr:last-child td{border-bottom:none}
+.report-table tr:hover td{background:#fafaf8}
+.report-table .sum-row td{background:#f0f7f0;font-weight:600;color:#2d7a3a}
+.report-summary{display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
+.report-summary .stat{background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px}
+.report-summary .stat strong{display:block;font-size:18px;font-weight:600;color:#1a1a1a}
+.report-summary .stat span{color:#888;font-size:11px}
 .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:1rem;display:flex;align-items:center;gap:8px}
 .alert-success{background:#e6f4ea;color:#2d7a3a}
 .alert-error{background:#fdecea;color:#c0392b}
@@ -173,9 +186,19 @@ header p{font-size:13px;color:#666}
       </div>
       <button class="btn" onclick="limparFiltros()" style="font-size:12px;padding:6px 12px"><i class="ti ti-x"></i> Limpar filtros</button>
     </div>
+    <div style="display:flex;align-items:center;margin-bottom:.75rem;gap:8px;flex-wrap:wrap">
+      <span id="resultCount" style="font-size:13px;color:#888"></span>
+      <div class="view-toggle" style="margin-left:auto">
+        <button id="btnViewGrid" class="active" onclick="setView('grid')" title="Grade"><i class="ti ti-layout-grid"></i></button>
+        <button id="btnViewTable" onclick="setView('table')" title="Tabela"><i class="ti ti-table"></i></button>
+      </div>
+      <button id="btnExportExcel" onclick="exportarExcel()" class="btn" style="font-size:12px;padding:5px 12px;display:none"><i class="ti ti-file-spreadsheet"></i> Exportar Excel</button>
+    </div>
+    <div id="reportSummary" style="display:none" class="report-summary"></div>
     <div class="grid" id="prodGrid">
       <div class="loading"><i class="ti ti-loader"></i>Carregando produtos...</div>
     </div>
+    <div id="prodTable" style="display:none;overflow-x:auto"></div>
   </div>
 
   <!-- CADASTRO -->
@@ -445,17 +468,42 @@ window.limparFiltros = function(){
   renderGrid();
 }
 
-function renderGrid(query=''){
-  const grid = document.getElementById('prodGrid');
-  let lista = produtos.filter(p=>{
-    const q = (query||document.getElementById('searchInput').value).toLowerCase();
-    const match = !q || p.nome.toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q) || (p.categoria||'').toLowerCase().includes(q);
+let viewAtual = 'grid';
+
+window.setView = function(v){
+  viewAtual = v;
+  document.getElementById('btnViewGrid').classList.toggle('active', v==='grid');
+  document.getElementById('btnViewTable').classList.toggle('active', v==='table');
+  document.getElementById('prodGrid').style.display = v==='grid' ? '' : 'none';
+  document.getElementById('prodTable').style.display = v==='table' ? '' : 'none';
+  document.getElementById('btnExportExcel').style.display = v==='table' ? '' : 'none';
+  document.getElementById('reportSummary').style.display = v==='table' ? '' : 'none';
+  renderGrid();
+}
+
+function getFiltroLista(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  return produtos.filter(p=>{
+    const match = !q || p.nome.toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q) || (p.categoria||'').toLowerCase().includes(q) || (p.obs||'').toLowerCase().includes(q);
     const total = getTotalQtd(p);
     const fm = filtroAtivo==='todos' || (filtroAtivo==='disponivel'&&total>0) || (filtroAtivo==='zerado'&&total===0);
     const cm = !categoriaAtiva || (p.categoria||'')=== categoriaAtiva;
     const em = !estoqueFiltroCat || (p.estoques && (p.estoques[estoqueFiltroCat]||0) > 0);
     return match && fm && cm && em;
   });
+}
+
+function renderGrid(query=''){
+  const lista = getFiltroLista();
+  const countEl = document.getElementById('resultCount');
+  if(countEl) countEl.textContent = lista.length + ' produto(s) encontrado(s)';
+
+  if(viewAtual === 'table'){
+    renderTable(lista);
+    return;
+  }
+
+  const grid = document.getElementById('prodGrid');
   if(!lista.length){
     grid.innerHTML='<div class="empty"><i class="ti ti-package-off"></i>Nenhum produto encontrado</div>';
     return;
@@ -472,6 +520,168 @@ function renderGrid(query=''){
       </div>
     </div>`;
   }).join('');
+}
+
+// Chave de agrupamento: categoria + unidade + dimensões
+function chaveAgrupamento(p){
+  // Agrupa apenas itens com MESMO nome + mesmas dimensões + mesma unidade
+  const nomeNorm = (p.nome||'').trim().toLowerCase();
+  return [nomeNorm, p.unidade||'', p.comprimento||'', p.largura||'', p.altura||'', p.espessura||'', p.lateral||''].join('|');
+}
+
+function renderTable(lista){
+  const tableDiv = document.getElementById('prodTable');
+  const summaryDiv = document.getElementById('reportSummary');
+
+  if(!lista.length){
+    tableDiv.innerHTML='<div class="empty"><i class="ti ti-package-off"></i>Nenhum produto encontrado</div>';
+    summaryDiv.innerHTML='';
+    return;
+  }
+
+  // Agrupar itens com mesma categoria+unidade+dimensões
+  const grupos = {};
+  lista.forEach(p=>{
+    const chave = chaveAgrupamento(p);
+    if(!grupos[chave]) grupos[chave] = {itens:[], totalQtd:0, p};
+    grupos[chave].itens.push(p);
+    grupos[chave].totalQtd += getTotalQtd(p);
+  });
+
+  // Resumo
+  const totalItens = lista.length;
+  const gruposAgrupados = Object.values(grupos).filter(g=>g.itens.length>1).length;
+  const totalGeral = lista.reduce((acc,p)=>acc+getTotalQtd(p),0);
+  summaryDiv.innerHTML = `
+    <div class="stat"><strong>${totalItens}</strong><span>Produtos</span></div>
+    <div class="stat"><strong>${gruposAgrupados}</strong><span>Grupos agrupados</span></div>
+    <div class="stat"><strong>${totalGeral}</strong><span>Total de unidades</span></div>`;
+  summaryDiv.style.display = 'flex';
+
+  // Tabela
+  const rows = Object.values(grupos).sort((a,b)=>(a.p.categoria||'').localeCompare(b.p.categoria||'')).map(g=>{
+    const p = g.p;
+    const agrupado = g.itens.length > 1;
+    const dims = [p.comprimento, p.largura, p.altura, p.espessura, p.lateral].filter(Boolean).join(' × ');
+    const estoqueStr = Object.entries(p.estoques||{}).filter(([,q])=>q>0).map(([loc,q])=>`${loc}: ${q}`).join(', ');
+    if(agrupado){
+      // Linha de grupo somado
+      const unidadesMetricas = ['m','m²','m³','ml'];
+      const isMetrico = unidadesMetricas.includes((p.unidade||'').toLowerCase());
+      const somaMetrosGrupo = isMetrico ? g.itens.reduce((acc,item)=>{
+        const comp = parseFloat((item.comprimento||'').replace(',','.'));
+        const qtd = getTotalQtd(item);
+        return acc + (!isNaN(comp)&&comp>0 ? comp*qtd : qtd);
+      },0).toFixed(2)+' '+p.unidade : '—';
+      return `<tr class="sum-row">
+        <td colspan="2"><i class="ti ti-stack" style="margin-right:6px;font-size:12px"></i>${p.nome}${g.itens.length>1?` <span style="font-size:11px;color:#888">(${g.itens.length} itens similares)</span>`:''}</td>
+        <td>${p.categoria||'—'}</td>
+        <td>${dims||'—'}</td>
+        <td style="font-weight:700;color:#2d7a3a">${g.totalQtd} ${p.unidade}</td>
+        <td style="font-weight:700;color:#2d7a3a">${somaMetrosGrupo}</td>
+        <td>—</td>
+      </tr>` + g.itens.map(item=>{
+        const compItem = parseFloat((item.comprimento||'').replace(',','.'));
+        const qtdItem = getTotalQtd(item);
+        const metrosItem = isMetrico ? ((!isNaN(compItem)&&compItem>0) ? (compItem*qtdItem).toFixed(2)+' '+item.unidade : qtdItem+' '+item.unidade) : '—';
+        return `<tr style="background:#f9fdf9;cursor:pointer" onclick="abrirModal('${item.id}')">
+          <td style="padding-left:24px;color:#888;font-size:12px">↳ ${item.nome}</td>
+          <td style="font-size:12px">${item.codigo||'—'}</td>
+          <td style="font-size:12px">${item.categoria||'—'}</td>
+          <td style="font-size:12px">${dims||'—'}</td>
+          <td style="font-size:12px">${qtdItem} ${item.unidade}</td>
+          <td style="font-size:12px;color:#2d7a3a">${metrosItem}</td>
+          <td style="font-size:11px;color:#888">${Object.entries(item.estoques||{}).filter(([,q])=>q>0).map(([loc,q])=>`${loc}:${q}`).join(', ')}</td>
+        </tr>`;
+      }).join('');
+    }
+    const unidadesMetricas2 = ['m','m²','m³','ml'];
+    const isMetrico2 = unidadesMetricas2.includes((p.unidade||'').toLowerCase());
+    const compNum = parseFloat((p.comprimento||'').replace(',','.'));
+    const qtdP = getTotalQtd(p);
+    const metrosP = isMetrico2 ? ((!isNaN(compNum)&&compNum>0) ? (compNum*qtdP).toFixed(2)+' '+p.unidade : qtdP+' '+p.unidade) : '—';
+    return `<tr onclick="abrirModal('${p.id}')" style="cursor:pointer">
+      <td>${p.nome}</td>
+      <td style="color:#888;font-size:12px">${p.codigo||'—'}</td>
+      <td>${p.categoria||'—'}</td>
+      <td style="color:#666;font-size:12px">${dims||'—'}</td>
+      <td style="font-weight:600;color:${qtdP>0?'#2d7a3a':'#c0392b'}">${qtdP} ${p.unidade}</td>
+      <td style="color:#2d7a3a;font-size:12px">${metrosP}</td>
+      <td style="font-size:11px;color:#888">${estoqueStr||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  tableDiv.innerHTML = `<table class="report-table">
+    <thead><tr>
+      <th>Produto</th><th>Código</th><th>Categoria</th><th>Dimensões</th><th>Qtd Total</th><th>Total em Metros</th><th>Estoques</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// Exportar Excel com os dados filtrados
+window.exportarExcel = function(){
+  const lista = getFiltroLista();
+  if(!lista.length){notify('Nenhum produto para exportar');return;}
+
+  // Agrupar igual à tabela
+  const grupos = {};
+  lista.forEach(p=>{
+    const chave = chaveAgrupamento(p);
+    if(!grupos[chave]) grupos[chave]={itens:[],totalQtd:0,p};
+    grupos[chave].itens.push(p);
+    grupos[chave].totalQtd+=getTotalQtd(p);
+  });
+
+  // Unidades de medida linear/área/volume
+  const unidadesMetricas = ['m','m²','m³','ml'];
+
+  function calcMetros(p){
+    const unid = (p.unidade||'').toLowerCase();
+    if(!unidadesMetricas.includes(unid)) return null;
+    // Tenta extrair comprimento numérico
+    const comp = parseFloat((p.comprimento||'').replace(',','.'));
+    const qtd = getTotalQtd(p);
+    if(!isNaN(comp) && comp > 0) return (comp * qtd).toFixed(2) + ' ' + unid;
+    return qtd + ' ' + unid; // se não tiver comprimento, usa qtd direta
+  }
+
+  const rows = [['Produto','Código','Categoria','Comprimento','Largura/Diâmetro','Altura','Espessura','Lateral','Unidade','Qtd Total','Total em Metros','Estoques','Obs']];
+  
+  Object.values(grupos).sort((a,b)=>(a.p.categoria||'').localeCompare(b.p.categoria||'')).forEach(g=>{
+    if(g.itens.length>1){
+      // Soma metros do grupo
+      const somaMetros = unidadesMetricas.includes((g.p.unidade||'').toLowerCase())
+        ? g.itens.reduce((acc,p)=>{
+            const comp = parseFloat((p.comprimento||'').replace(',','.'));
+            const qtd = getTotalQtd(p);
+            return acc + (!isNaN(comp)&&comp>0 ? comp*qtd : qtd);
+          }, 0).toFixed(2) + ' ' + g.p.unidade
+        : '—';
+      rows.push([
+        `[SOMA] ${g.p.nome} (${g.itens.length} itens)`,'','',
+        g.p.comprimento||'',g.p.largura||'',g.p.altura||'',g.p.espessura||'',g.p.lateral||'',
+        g.p.unidade, g.totalQtd, somaMetros, 'TOTAL AGRUPADO', ''
+      ]);
+    }
+    g.itens.forEach(p=>{
+      const estoqueStr = Object.entries(p.estoques||{}).filter(([,q])=>q>0).map(([loc,q])=>`${loc}: ${q}`).join(' | ');
+      const metros = calcMetros(p) || '—';
+      rows.push([
+        p.nome, p.codigo||'', p.categoria||'',
+        p.comprimento||'', p.largura||'', p.altura||'', p.espessura||'', p.lateral||'',
+        p.unidade, getTotalQtd(p), metros, estoqueStr, p.obs||''
+      ]);
+    });
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:40},{wch:12},{wch:35},{wch:14},{wch:16},{wch:10},{wch:12},{wch:10},{wch:8},{wch:10},{wch:16},{wch:40},{wch:30}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Catálogo');
+  const data = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  XLSX.writeFile(wb, `catalogo_${data}.xlsx`);
+  notify('Excel exportado!');
 }
 
 window.handleSearch = function(){
@@ -532,7 +742,7 @@ window.abrirModal = function(id){
     <table class="stock-table"><thead><tr><th>Local</th><th>Quantidade</th></tr></thead><tbody>${estoqueRows}</tbody></table>
     <div style="display:flex;gap:8px;margin-top:1.25rem;flex-wrap:wrap">
       <button class="btn btn-primary" onclick="abrirEdicao('${p.id}')"><i class="ti ti-pencil"></i> Editar</button>
-      <button class="btn" onclick="document.getElementById('uploadFotoModal').click()"><i class="ti ti-camera"></i> Foto</button>
+      <button class="btn" onclick="abrirMenuFoto('${p.id}')"><i class="ti ti-camera"></i> Foto</button>
       ${p.foto?`<button class="btn" onclick="removerFotoProduto('${p.id}')"><i class="ti ti-photo-off"></i> Remover foto</button>`:''}
       <button class="btn" onclick="fecharModal();showPage('movimentacao',document.querySelectorAll('.nav button')[3])"><i class="ti ti-transfer"></i> Movimentar</button>
       <button class="btn btn-danger" onclick="excluirProduto('${p.id}')"><i class="ti ti-trash"></i> Excluir</button>
@@ -645,6 +855,96 @@ window.removerFotoProduto = async function(id){
   await updateDoc(doc(db,'produtos',id),{foto:null});
   fecharModal();
   notify('Foto removida');
+}
+
+window.abrirMenuFoto = function(id){
+  // Mini menu: galeria ou câmera
+  const existing = document.getElementById('fotoMenuOverlay');
+  if(existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'fotoMenuOverlay';
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:flex-end;justify-content:center;padding:1rem';
+  div.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:1.25rem;width:min(420px,100%);margin-bottom:1rem">
+      <p style="font-size:15px;font-weight:600;margin-bottom:1rem;text-align:center">Adicionar foto</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+        <button onclick="document.getElementById('fotoMenuOverlay').remove();document.getElementById('uploadFotoModal').click()"
+          style="padding:1rem;border:1px solid #e8e8e0;border-radius:10px;background:#fff;cursor:pointer;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px">
+          <i class="ti ti-photo" style="font-size:28px;color:#1a1a1a"></i>
+          Galeria / Arquivo
+        </button>
+        <button onclick="document.getElementById('fotoMenuOverlay').remove();abrirCamera('${id}')"
+          style="padding:1rem;border:1px solid #e8e8e0;border-radius:10px;background:#fff;cursor:pointer;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px">
+          <i class="ti ti-camera" style="font-size:28px;color:#1a1a1a"></i>
+          Tirar foto agora
+        </button>
+      </div>
+      <button onclick="document.getElementById('fotoMenuOverlay').remove()"
+        style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#666">
+        Cancelar
+      </button>
+    </div>`;
+  document.body.appendChild(div);
+}
+
+window.abrirCamera = function(prodId){
+  const existing = document.getElementById('cameraOverlay');
+  if(existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'cameraOverlay';
+  div.style.cssText = 'position:fixed;inset:0;background:#000;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center';
+  div.innerHTML = `
+    <video id="cameraVideo" autoplay playsinline style="width:100%;max-width:500px;max-height:70vh;object-fit:cover;border-radius:12px"></video>
+    <canvas id="cameraCanvas" style="display:none"></canvas>
+    <div style="display:flex;gap:16px;margin-top:1.5rem">
+      <button onclick="tirarFoto('${prodId}')"
+        style="width:64px;height:64px;border-radius:50%;background:#fff;border:4px solid #fff;box-shadow:0 2px 12px rgba(0,0,0,.4);cursor:pointer;font-size:24px">
+        📷
+      </button>
+      <button onclick="fecharCamera()"
+        style="padding:12px 24px;border-radius:30px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;cursor:pointer;font-size:14px">
+        Cancelar
+      </button>
+    </div>
+    <p style="color:rgba(255,255,255,.6);font-size:12px;margin-top:1rem">Aponte para o produto e pressione o botão</p>`;
+  document.body.appendChild(div);
+
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
+    .then(stream=>{
+      const video = document.getElementById('cameraVideo');
+      video.srcObject = stream;
+      div._stream = stream;
+    })
+    .catch(()=>{
+      fecharCamera();
+      notify('Câmera não disponível — use a opção de galeria');
+    });
+}
+
+window.tirarFoto = async function(prodId){
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('cameraCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const b64 = await comprimirImagem(canvas.toDataURL('image/jpeg'), 500);
+  fecharCamera();
+  if(b64){
+    setSyncStatus('syncing');
+    await updateDoc(doc(db,'produtos',prodId),{foto:b64});
+    // Update modal image if open
+    const prodImg = document.querySelector('.prod-img-big');
+    if(prodImg) prodImg.innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover">`;
+    notify('Foto tirada e salva!');
+  }
+}
+
+window.fecharCamera = function(){
+  const overlay = document.getElementById('cameraOverlay');
+  if(overlay){
+    if(overlay._stream) overlay._stream.getTracks().forEach(t=>t.stop());
+    overlay.remove();
+  }
 }
 
 function comprimirImagem(base64, maxSize){
