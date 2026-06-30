@@ -10,7 +10,7 @@
 body{font-family:system-ui,-apple-system,sans-serif;background:#f4f4f0;min-height:100vh;color:#1a1a1a}
 .app{max-width:960px;margin:0 auto;padding:1.5rem}
 header{margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-header h1{font-size:20px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
+header h1{font-size:20px;font-weight:600;color:#3F3F3F;margin-bottom:2px}
 header p{font-size:13px;color:#666}
 .sync-status{font-size:12px;display:flex;align-items:center;gap:6px;color:#666;padding:4px 10px;background:#fff;border:1px solid #e8e8e0;border-radius:20px}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:#2d7a3a}
@@ -18,6 +18,19 @@ header p{font-size:13px;color:#666}
 .sync-dot.error{background:#c0392b}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .foto-panel{background:#fff;border:1px solid #e8e8e0;border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;display:none}
+.norm-card{background:#fff;border:1px solid #e8e8e0;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.norm-card-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f9f9f7;border-bottom:1px solid #f0f0e8;cursor:pointer}
+.norm-card-header input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#C8102E}
+.norm-card-name{font-size:13px;font-weight:500;flex:1}
+.norm-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.norm-badge-warn{background:#fff3cd;color:#856404}
+.norm-badge-ok{background:#eaf4d8;color:#5A8A2C}
+.norm-table{width:100%;border-collapse:collapse;font-size:12px}
+.norm-table th{padding:6px 12px;text-align:left;font-size:11px;color:#888;font-weight:500;border-bottom:1px solid #f0f0e8;background:#fafaf8}
+.norm-table td{padding:7px 12px;border-bottom:1px solid #f4f4f0;vertical-align:top}
+.norm-before{color:#999;text-decoration:line-through;font-size:11px}
+.norm-after{color:#5A8A2C;font-weight:500}
+.norm-arrow{color:#C8102E;margin:0 6px;font-size:12px}
 .foto-panel.open{display:block}
 .foto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:1rem;max-height:420px;overflow-y:auto}
 .foto-card{background:#f4f4f0;border-radius:10px;overflow:hidden;position:relative}
@@ -25,7 +38,7 @@ header p{font-size:13px;color:#666}
 .foto-card-body{padding:7px 9px}
 .foto-card-name{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
 .foto-card-status{font-size:10px;padding:2px 7px;border-radius:20px;display:inline-block;font-weight:500}
-.fcs-ok{background:#e6f4ea;color:#2d7a3a}
+.fcs-ok{background:#e6f4ea;color:#5A8A2C}
 .fcs-proc{background:#fff3cd;color:#856404}
 .fcs-err{background:#fdecea;color:#c0392b}
 .fcs-wait{background:#f0f0f0;color:#888}
@@ -36,7 +49,7 @@ header p{font-size:13px;color:#666}
 .nav{display:flex;gap:6px;margin-bottom:1.5rem;border-bottom:1px solid #e0e0d8;padding-bottom:1rem;flex-wrap:wrap}
 .nav button{background:none;border:none;padding:7px 14px;font-size:13px;cursor:pointer;color:#666;border-radius:8px;transition:all .15s;display:flex;align-items:center;gap:6px}
 .nav button i{font-size:15px}
-.nav button.active{background:#fff;color:#1a1a1a;font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.nav button.active{background:#fff;color:#C8102E;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12);border-bottom:2px solid #C8102E}
 .nav button:hover:not(.active){background:#ebebе6;color:#1a1a1a}
 .page{display:none}.page.active{display:block}
 .search-wrap{position:relative;margin-bottom:1.25rem}
@@ -49,19 +62,23 @@ header p{font-size:13px;color:#666}
 .autocomplete-item i{color:#aaa;font-size:13px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
 .card{background:#fff;border:1px solid #e8e8e0;border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .1s}
-.card:hover{border-color:#bbb;transform:translateY(-1px)}
+.card:hover{border-color:#C8102E;transform:translateY(-1px)}
 .card-img{width:100%;height:130px;background:#f4f4f0;display:flex;align-items:center;justify-content:center;color:#bbb;overflow:hidden}
-.card-img img{width:100%;height:130px;object-fit:cover}
+.card-img img{width:100%;height:130px;object-fit:cover;cursor:zoom-in}
+.photo-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;align-items:center;justify-content:center;padding:1rem}
+.photo-lightbox.open{display:flex}
+.photo-lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.photo-lightbox-close{position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:#fff;font-size:32px;cursor:pointer;line-height:1}
 .card-body{padding:10px 12px}
 .card-name{font-size:13px;font-weight:500;color:#1a1a1a;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-meta{font-size:11px;color:#999;margin-bottom:7px}
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:500}
-.badge-ok{background:#e6f4ea;color:#2d7a3a}
+.badge-ok{background:#eaf4d8;color:#5A8A2C}
 .badge-zero{background:#fdecea;color:#c0392b}
 .action-bar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
 .action-bar span{font-size:13px;color:#999}
 .filter-btn{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid #e0e0d8;background:#fff;cursor:pointer;color:#666;transition:all .15s}
-.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.filter-btn.active{background:#C8102E;color:#fff;border-color:#C8102E}
 .empty{text-align:center;padding:3rem;color:#aaa;font-size:14px;grid-column:1/-1}
 .empty i{font-size:36px;display:block;margin-bottom:10px}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;padding:1rem}
@@ -81,8 +98,8 @@ header p{font-size:13px;color:#666}
 .stock-table td{padding:7px 10px;border-bottom:1px solid #f4f4f0}
 .btn{padding:7px 16px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid #ddd;background:#fff;color:#1a1a1a;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
 .btn:hover{background:#f4f4f0}
-.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-.btn-primary:hover{background:#333}
+.btn-primary{background:#C8102E;color:#fff;border-color:#C8102E}
+.btn-primary:hover{background:#a50d26}
 .btn-danger{border-color:#f5c6c2;color:#c0392b}
 .btn-danger:hover{background:#fdecea}
 .form-group{margin-bottom:1rem}
@@ -93,7 +110,7 @@ header p{font-size:13px;color:#666}
 .upload-area{border:2px dashed #ddd;border-radius:10px;padding:1.75rem;text-align:center;cursor:pointer;color:#aaa;font-size:14px;background:#fafaf8;transition:border-color .15s}
 .upload-area:hover{border-color:#888;color:#666}
 .upload-area i{font-size:30px;display:block;margin-bottom:8px}
-.section-title{font-size:15px;font-weight:600;margin-bottom:1rem;color:#1a1a1a}
+.section-title{font-size:15px;font-weight:600;margin-bottom:1rem;color:#3F3F3F}
 .obs-box{font-size:13px;color:#666;padding:8px 12px;background:#f4f4f0;border-radius:8px;margin-bottom:1rem;line-height:1.5}
 .estoque-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border:1px solid #e8e8e0;border-radius:10px;margin-bottom:8px}
 .estoque-item .name{font-size:14px;font-weight:500}
@@ -105,23 +122,35 @@ header p{font-size:13px;color:#666}
 .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;margin-right:6px;font-weight:500}
 .tag-baixa{background:#e8f0fe;color:#1a56c4}
 .tag-trans{background:#fef3cd;color:#856404}
-.notify{position:fixed;bottom:1.5rem;right:1.5rem;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.notify{position:fixed;bottom:1.5rem;right:1.5rem;background:#3F3F3F;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .notify.show{opacity:1}
 .view-toggle{display:flex;gap:6px;margin-left:auto}
 .view-toggle button{padding:5px 10px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;font-size:13px;color:#666}
-.view-toggle button.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-.report-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e8e8e0}
-.report-table th{background:#f4f4f0;padding:9px 12px;text-align:left;font-weight:600;font-size:12px;color:#666;border-bottom:1px solid #e8e8e0;white-space:nowrap}
-.report-table td{padding:8px 12px;border-bottom:1px solid #f4f4f0;vertical-align:middle}
+.view-toggle button.active{background:#C8102E;color:#fff;border-color:#C8102E}
+.report-table{width:100%;min-width:900px;border-collapse:collapse;font-size:12px;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e8e8e0}
+.report-table th{background:#f4f4f0;padding:7px 8px;text-align:left;font-weight:600;font-size:11px;color:#666;border-bottom:1px solid #e8e8e0;white-space:nowrap}
+.report-table td{padding:6px 8px;border-bottom:1px solid #f4f4f0;vertical-align:middle;font-size:12px}
 .report-table tr:last-child td{border-bottom:none}
 .report-table tr:hover td{background:#fafaf8}
-.report-table .sum-row td{background:#f0f7f0;font-weight:600;color:#2d7a3a}
+.report-table .sum-row td{background:#eef7e0;font-weight:600;color:#5A8A2C}
+.report-table .col-produto{min-width:180px;max-width:220px}
+.report-table .col-cat{min-width:120px;max-width:160px}
+.report-table .col-dim{min-width:70px;text-align:center}
+.report-table .col-num{min-width:55px;text-align:center}
+.report-table .col-est{min-width:120px;font-size:11px;color:#888}
 .report-summary{display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
 .report-summary .stat{background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px}
-.report-summary .stat strong{display:block;font-size:18px;font-weight:600;color:#1a1a1a}
+.report-summary .stat strong{display:block;font-size:18px;font-weight:600;color:#3F3F3F}
 .report-summary .stat span{color:#888;font-size:11px}
+.dual-scroll-top{overflow-x:auto;overflow-y:hidden;height:12px;margin-bottom:2px}
+.dual-scroll-top::-webkit-scrollbar{height:6px}
+.dual-scroll-top::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.dual-scroll-inner{height:1px}
+.dual-scroll-main{overflow-x:auto;overflow-y:visible}
+.dual-scroll-main::-webkit-scrollbar{height:6px}
+.dual-scroll-main::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
 .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:1rem;display:flex;align-items:center;gap:8px}
-.alert-success{background:#e6f4ea;color:#2d7a3a}
+.alert-success{background:#e6f4ea;color:#5A8A2C}
 .alert-error{background:#fdecea;color:#c0392b}
 .loading{text-align:center;padding:3rem;color:#aaa;grid-column:1/-1}
 .loading i{font-size:28px;display:block;margin-bottom:8px;animation:spin 1s linear infinite}
@@ -139,7 +168,10 @@ header p{font-size:13px;color:#666}
 <div class="app">
   <header>
     <div>
-      <h1>Catálogo de Materiais</h1>
+      <h1 style="display:flex;align-items:center;gap:8px">
+        <span style="display:inline-block;width:4px;height:22px;background:#C8102E;border-radius:2px"></span>
+        Catálogo de Materiais
+      </h1>
       <p>Sobras de obras — controle de estoque compartilhado</p>
     </div>
     <div class="sync-status">
@@ -153,7 +185,7 @@ header p{font-size:13px;color:#666}
     <button onclick="showPage('cadastro',this)"><i class="ti ti-plus"></i> <span>Cadastrar</span></button>
     <button onclick="showPage('estoques',this)"><i class="ti ti-building-warehouse"></i> <span>Estoques</span></button>
     <button onclick="showPage('movimentacao',this)"><i class="ti ti-transfer"></i> <span>Movimentação</span></button>
-    <button onclick="showPage('fotos',this)"><i class="ti ti-photo-ai"></i> <span>Fotos</span></button>
+    <button onclick="showPage('normalizar',this)"><i class="ti ti-wand"></i> <span>Normalizar</span></button>
   </div>
 
   <!-- CATÁLOGO -->
@@ -198,7 +230,7 @@ header p{font-size:13px;color:#666}
     <div class="grid" id="prodGrid">
       <div class="loading"><i class="ti ti-loader"></i>Carregando produtos...</div>
     </div>
-    <div id="prodTable" style="display:none;overflow-x:auto"></div>
+    <div id="prodTable" style="display:none;overflow-x:auto;border-radius:12px"></div>
   </div>
 
   <!-- CADASTRO -->
@@ -323,26 +355,22 @@ header p{font-size:13px;color:#666}
       </div>
     </div>
   </div>
-  <!-- FOTOS -->
-  <div id="page-fotos" class="page">
-    <p class="section-title">Busca automática de fotos</p>
+  <!-- NORMALIZAR -->
+  <div id="page-normalizar" class="page">
+    <p class="section-title">Normalização automática de dados</p>
     <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;padding:1.25rem;margin-bottom:1rem">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem">
-        <button class="btn btn-primary" id="btnBuscarFotos" onclick="iniciarBuscaFotos()"><i class="ti ti-photo-search"></i> Buscar fotos para todos sem imagem</button>
-        <button class="btn" id="btnPausarFotos" onclick="pausarBuscaFotos()" disabled><i class="ti ti-player-pause"></i> Pausar</button>
+      <p style="font-size:13px;color:#666;margin-bottom:1rem">A ferramenta analisa todos os produtos e identifica inconsistências: dimensões sem unidade, valores que constam na descrição mas não nas colunas, e campos em branco que podem ser preenchidos automaticamente.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem">
+        <button class="btn btn-primary" id="btnAnalisar" onclick="analisarProdutos()"><i class="ti ti-search"></i> Analisar todos os produtos</button>
+        <button class="btn" id="btnAplicar" onclick="aplicarCorrecoes()" style="display:none"><i class="ti ti-check"></i> Aplicar correções selecionadas</button>
+        <button class="btn" onclick="selecionarTodasCorrecoes(true)" id="btnSelAll" style="display:none;font-size:12px">Selecionar todas</button>
+        <button class="btn" onclick="selecionarTodasCorrecoes(false)" id="btnDesAll" style="display:none;font-size:12px">Desmarcar todas</button>
       </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem">
-        <div style="background:#f4f4f0;border-radius:8px;padding:8px 14px;font-size:13px"><span id="fp-total" style="font-weight:600">—</span> produtos</div>
-        <div style="background:#e6f4ea;border-radius:8px;padding:8px 14px;font-size:13px;color:#2d7a3a"><span id="fp-com" style="font-weight:600">—</span> com foto</div>
-        <div style="background:#fdecea;border-radius:8px;padding:8px 14px;font-size:13px;color:#c0392b"><span id="fp-sem" style="font-weight:600">—</span> sem foto</div>
-        <div style="background:#fff3cd;border-radius:8px;padding:8px 14px;font-size:13px;color:#856404"><span id="fp-proc" style="font-weight:600">0</span> processados agora</div>
-      </div>
-      <div class="foto-progress"><div class="foto-progress-fill" id="fotoProgressFill"></div></div>
-      <div class="foto-log" id="fotoLog" style="display:none"></div>
+      <div class="foto-progress" id="normProgress" style="display:none"><div class="foto-progress-fill" id="normProgressFill"></div></div>
+      <div id="normStats" style="display:none;margin-bottom:1rem"></div>
     </div>
-    <div class="foto-grid" id="fotoGrid"></div>
+    <div id="normPreview"></div>
   </div>
-
 
 </div>
 
@@ -350,6 +378,10 @@ header p{font-size:13px;color:#666}
   <div class="modal" id="modal"></div>
 </div>
 <div class="notify" id="notify"></div>
+<div class="photo-lightbox" id="photoLightbox" onclick="fecharLightbox()">
+  <button class="photo-lightbox-close" onclick="fecharLightbox()" aria-label="Fechar">&times;</button>
+  <img id="photoLightboxImg" src="" alt="Foto ampliada">
+</div>
 
 <!-- Firebase SDK -->
 <script type="module">
@@ -379,7 +411,7 @@ let filtroAtivo = 'todos';
 function setSyncStatus(status){
   const dot = document.getElementById('syncDot');
   const label = document.getElementById('syncLabel');
-  if(status==='ok'){dot.className='sync-dot';dot.style.background='#2d7a3a';label.textContent='Sincronizado';}
+  if(status==='ok'){dot.className='sync-dot';dot.style.background='#8DC63F';label.textContent='Sincronizado';}
   else if(status==='syncing'){dot.className='sync-dot syncing';dot.style.background='';label.textContent='Sincronizando...';}
   else{dot.className='sync-dot error';dot.style.background='#c0392b';label.textContent='Erro de conexão';}
 }
@@ -483,7 +515,7 @@ window.setView = function(v){
 
 function getFiltroLista(){
   const q = document.getElementById('searchInput').value.toLowerCase();
-  return produtos.filter(p=>{
+  const lista = produtos.filter(p=>{
     const match = !q || p.nome.toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q) || (p.categoria||'').toLowerCase().includes(q) || (p.obs||'').toLowerCase().includes(q);
     const total = getTotalQtd(p);
     const fm = filtroAtivo==='todos' || (filtroAtivo==='disponivel'&&total>0) || (filtroAtivo==='zerado'&&total===0);
@@ -491,6 +523,8 @@ function getFiltroLista(){
     const em = !estoqueFiltroCat || (p.estoques && (p.estoques[estoqueFiltroCat]||0) > 0);
     return match && fm && cm && em;
   });
+  // Sempre em ordem alfabética
+  return lista.sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
 }
 
 function renderGrid(query=''){
@@ -573,24 +607,33 @@ function renderTable(lista){
         const qtd = getTotalQtd(item);
         return acc + (!isNaN(comp)&&comp>0 ? comp*qtd : qtd);
       },0).toFixed(2)+' '+p.unidade : '—';
+      // formata dimensão — mostra valor como cadastrado (já inclui unidade)
+      function fmtDim(val){ return (val&&val.trim()) ? val.trim() : '—'; }
       return `<tr class="sum-row">
-        <td colspan="2"><i class="ti ti-stack" style="margin-right:6px;font-size:12px"></i>${p.nome}${g.itens.length>1?` <span style="font-size:11px;color:#888">(${g.itens.length} itens similares)</span>`:''}</td>
-        <td>${p.categoria||'—'}</td>
-        <td>${dims||'—'}</td>
-        <td style="font-weight:700;color:#2d7a3a">${g.totalQtd} ${p.unidade}</td>
-        <td style="font-weight:700;color:#2d7a3a">${somaMetrosGrupo}</td>
+        <td><i class="ti ti-stack" style="margin-right:6px;font-size:12px"></i>${p.nome}${g.itens.length>1?` <span style="font-size:11px;color:rgba(0,100,0,.6)">(${g.itens.length} itens)</span>`:''}</td>
+        <td class="col-dim">${fmtDim(p.comprimento)}</td>
+        <td class="col-dim">${fmtDim(p.largura)}</td>
+        <td class="col-dim">${fmtDim(p.altura)}</td>
+        <td class="col-dim">${fmtDim(p.espessura)}</td>
+        <td class="col-dim">${fmtDim(p.lateral)}</td>
+        <td>${p.unidade||'—'}</td>
+        <td style="font-weight:700;color:#5A8A2C">${g.totalQtd}</td>
+        <td style="font-weight:700;color:#5A8A2C">${somaMetrosGrupo}</td>
         <td>—</td>
       </tr>` + g.itens.map(item=>{
         const compItem = parseFloat((item.comprimento||'').replace(',','.'));
         const qtdItem = getTotalQtd(item);
         const metrosItem = isMetrico ? ((!isNaN(compItem)&&compItem>0) ? (compItem*qtdItem).toFixed(2)+' '+item.unidade : qtdItem+' '+item.unidade) : '—';
         return `<tr style="background:#f9fdf9;cursor:pointer" onclick="abrirModal('${item.id}')">
-          <td style="padding-left:24px;color:#888;font-size:12px">↳ ${item.nome}</td>
-          <td style="font-size:12px">${item.codigo||'—'}</td>
-          <td style="font-size:12px">${item.categoria||'—'}</td>
-          <td style="font-size:12px">${dims||'—'}</td>
-          <td style="font-size:12px">${qtdItem} ${item.unidade}</td>
-          <td style="font-size:12px;color:#2d7a3a">${metrosItem}</td>
+          <td style="padding-left:20px;color:#888;font-size:12px">↳ ${item.nome}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDim(item.comprimento)}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDim(item.largura)}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDim(item.altura)}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDim(item.espessura)}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDim(item.lateral)}</td>
+          <td style="font-size:12px">${item.unidade||'—'}</td>
+          <td style="font-size:12px">${qtdItem}</td>
+          <td style="font-size:12px;color:#5A8A2C">${metrosItem}</td>
           <td style="font-size:11px;color:#888">${Object.entries(item.estoques||{}).filter(([,q])=>q>0).map(([loc,q])=>`${loc}:${q}`).join(', ')}</td>
         </tr>`;
       }).join('');
@@ -602,21 +645,55 @@ function renderTable(lista){
     const metrosP = isMetrico2 ? ((!isNaN(compNum)&&compNum>0) ? (compNum*qtdP).toFixed(2)+' '+p.unidade : qtdP+' '+p.unidade) : '—';
     return `<tr onclick="abrirModal('${p.id}')" style="cursor:pointer">
       <td>${p.nome}</td>
-      <td style="color:#888;font-size:12px">${p.codigo||'—'}</td>
-      <td>${p.categoria||'—'}</td>
-      <td style="color:#666;font-size:12px">${dims||'—'}</td>
-      <td style="font-weight:600;color:${qtdP>0?'#2d7a3a':'#c0392b'}">${qtdP} ${p.unidade}</td>
-      <td style="color:#2d7a3a;font-size:12px">${metrosP}</td>
+      <td class="col-dim">${p.comprimento||'—'}</td>
+      <td class="col-dim">${p.largura||'—'}</td>
+      <td class="col-dim">${p.altura||'—'}</td>
+      <td class="col-dim">${p.espessura||'—'}</td>
+      <td class="col-dim">${p.lateral||'—'}</td>
+      <td>${p.unidade||'—'}</td>
+      <td style="font-weight:600;color:${qtdP>0?'#5A8A2C':'#C8102E'}">${qtdP}</td>
+      <td style="color:#5A8A2C;font-size:12px">${metrosP}</td>
       <td style="font-size:11px;color:#888">${estoqueStr||'—'}</td>
     </tr>`;
   }).join('');
 
-  tableDiv.innerHTML = `<table class="report-table">
-    <thead><tr>
-      <th>Produto</th><th>Código</th><th>Categoria</th><th>Dimensões</th><th>Qtd Total</th><th>Total em Metros</th><th>Estoques</th>
-    </tr></thead>
-    <tbody>${rows}</tbody>
-  </table>`;
+  // Dual scrollbar wrapper
+  tableDiv.innerHTML = `
+    <div class="dual-scroll-top" id="scrollTop"><div class="dual-scroll-inner" id="scrollTopInner"></div></div>
+    <div class="dual-scroll-main" id="scrollMain">
+      <table class="report-table" id="reportTableEl">
+        <thead>
+          <tr>
+            <th rowspan="2" class="col-produto">Produto</th>
+            <th colspan="5" style="text-align:center;border-bottom:1px solid #ddd">Dimensões</th>
+            <th rowspan="2" class="col-num">Unid.</th>
+            <th rowspan="2" class="col-num">Qtd</th>
+            <th rowspan="2" class="col-num">Total m</th>
+            <th rowspan="2" class="col-est">Estoques</th>
+          </tr>
+          <tr>
+            <th class="col-dim">Compr.</th>
+            <th class="col-dim">Larg./Ø</th>
+            <th class="col-dim">Altura</th>
+            <th class="col-dim">Espes.</th>
+            <th class="col-dim">Lateral</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  // Sync scrollbars
+  setTimeout(()=>{
+    const main = document.getElementById('scrollMain');
+    const top = document.getElementById('scrollTop');
+    const inner = document.getElementById('scrollTopInner');
+    const tbl = document.getElementById('reportTableEl');
+    if(main&&top&&inner&&tbl){
+      inner.style.width = tbl.scrollWidth + 'px';
+      main.addEventListener('scroll', ()=>{ top.scrollLeft = main.scrollLeft; });
+      top.addEventListener('scroll', ()=>{ main.scrollLeft = top.scrollLeft; });
+    }
+  }, 100);
 }
 
 // Exportar Excel com os dados filtrados
@@ -691,15 +768,44 @@ window.handleSearch = function(){
   if(val.length<1){ac.style.display='none';return;}
   const sugs = produtos.filter(p=>p.nome.toLowerCase().includes(val.toLowerCase())).slice(0,7);
   if(!sugs.length){ac.style.display='none';return;}
-  ac.innerHTML = sugs.map(p=>`<div class="autocomplete-item" onclick="selecionarSugestao('${p.nome.replace(/'/g,"\\'")}')"><i class="ti ti-search"></i>${p.nome}<span style="color:#aaa;font-size:12px;margin-left:6px">· ${p.categoria||''}</span></div>`).join('');
+  ac.innerHTML = sugs.map(p=>`<div class="autocomplete-item" onclick="selecionarSugestao('${p.nome.replace(/'/g,"\'")}')"><i class="ti ti-search"></i>${p.nome}<span style="color:#aaa;font-size:12px;margin-left:6px">· ${p.categoria||''}</span></div>`).join('');
   ac.style.display='block';
 }
+
+// Enter filtra imediatamente
+setTimeout(()=>{
+  const inp = document.getElementById('searchInput');
+  if(inp) inp.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){
+      document.getElementById('autocomplete').style.display='none';
+      renderGrid(this.value);
+    }
+  });
+}, 500);
 
 window.selecionarSugestao = function(nome){
   document.getElementById('searchInput').value=nome;
   document.getElementById('autocomplete').style.display='none';
   renderGrid(nome);
 }
+
+// Lightbox de foto
+window.abrirLightbox = function(id){
+  const p = produtos.find(x=>x.id===id);
+  if(!p||!p.foto) return;
+  document.getElementById('photoLightboxImg').src = p.foto;
+  document.getElementById('photoLightbox').classList.add('open');
+}
+window.abrirLightboxUrl = function(id){
+  const p = produtos.find(x=>x.id===id);
+  if(!p||!p.foto) return;
+  document.getElementById('photoLightboxImg').src = p.foto;
+  document.getElementById('photoLightbox').classList.add('open');
+}
+window.fecharLightbox = function(){
+  document.getElementById('photoLightbox').classList.remove('open');
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') fecharLightbox(); });
 
 document.addEventListener('click',e=>{
   if(!e.target.closest('.search-wrap')) document.getElementById('autocomplete').style.display='none';
@@ -728,13 +834,15 @@ window.abrirModal = function(id){
       <button class="close-btn" onclick="fecharModal()">&times;</button>
     </div>
     <div class="modal-grid">
-      <div class="prod-img-big">${p.foto?`<img src="${p.foto}" alt="${p.nome}">`:`<i class="ti ti-photo-off" style="font-size:36px;color:#ccc"></i>`}</div>
+      <div class="prod-img-big" onclick="if(this.querySelector('img'))abrirLightboxUrl('${p.id}')" style="${p.foto?'cursor:zoom-in':''}" title="${p.foto?'Clique para ampliar':''}">
+        ${p.foto?`<img src="${p.foto}" alt="${p.nome}">`:`<i class="ti ti-photo-off" style="font-size:36px;color:#ccc"></i>`}
+      </div>
       <div>
         <div class="info-row"><span>Código</span><span>${p.codigo||'—'}</span></div>
         <div class="info-row"><span>Categoria</span><span>${p.categoria||'—'}</span></div>
         ${dims.map(d=>`<div class="info-row"><span>${d.split(':')[0]}</span><span>${d.split(':')[1]}</span></div>`).join('')}
         <div class="info-row"><span>Unidade</span><span>${p.unidade}</span></div>
-        <div class="info-row"><span>Total em estoque</span><span style="color:${total>0?'#2d7a3a':'#c0392b'}">${total} ${p.unidade}</span></div>
+        <div class="info-row"><span>Total em estoque</span><span style="color:${total>0?'#5A8A2C':'#C8102E'}">${total} ${p.unidade}</span></div>
       </div>
     </div>
     ${p.obs?`<div class="obs-box"><i class="ti ti-notes" style="margin-right:6px"></i>${p.obs}</div>`:''}
@@ -772,27 +880,78 @@ window.abrirEdicao = function(id){
     '12.002 - Impostos','13.001 - Equipamentos Esportivos e Recreativos'
   ];
   const catSelectOpts = catOpts.map(c=>`<option value="${c}" ${p.categoria===c?'selected':''}>${c}</option>`).join('');
-  const unidades = ['un','m','m²','m³','kg','L','cx','rolo','barra'];
+  const unidades = ['un','m','m²','m³','kg','L','cx','rolo','barra','mm','cm','kg/m²'];
   const unidOpts = unidades.map(u=>`<option value="${u}" ${p.unidade===u?'selected':''}>${u}</option>`).join('');
+
+  // Helper: parse valor e unidade de uma string como "6m", "1mm", "0.65m"
+  function parseValUnid(str, defaultUnid='m'){
+    if(!str) return {val:'',unid:defaultUnid};
+    const m = str.match(/^([0-9.,]+)\s*([a-zA-Z²³%/]*)$/);
+    if(m) return {val:m[1], unid:m[2]||defaultUnid};
+    return {val:str, unid:defaultUnid};
+  }
+
+  const dimUnids = ['mm','cm','m','m²','m³','pol','"',"'"];
+  function dimSelect(id, val){
+    return `<select id="${id}" style="padding:8px 6px;border:1px solid #ddd;border-radius:0 8px 8px 0;font-size:13px;background:#f0f0ee;outline:none;border-left:none;width:72px;flex-shrink:0">
+      ${dimUnids.map(u=>`<option value="${u}" ${val===u?'selected':''}>${u}</option>`).join('')}
+    </select>`;
+  }
+  function dimInput(id, val, unidId, unidVal){
+    return `<div style="display:flex;align-items:stretch">
+      <input type="text" id="${id}" value="${val}" placeholder="0" style="flex:1;min-width:0;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px 0 0 8px;outline:none;width:100%">
+      ${dimSelect(unidId, unidVal)}
+    </div>`;
+  }
+
+  const comp = parseValUnid(p.comprimento,'m');
+  const larg = parseValUnid(p.largura,'m');
+  const alt  = parseValUnid(p.altura,'m');
+  const esp  = parseValUnid(p.espessura,'mm');
+  const lat  = parseValUnid(p.lateral,'cm');
+
+  const inputStyle = 'width:100%;padding:7px 10px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none;font-family:inherit';
+  const secStyle = 'background:#f9f9f7;border:1px solid #e8e8e0;border-radius:10px;padding:1rem;margin-bottom:1rem';
+  const secTitle = 'font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem';
 
   document.getElementById('modal').innerHTML=`
     <div class="modal-header">
       <h2><i class="ti ti-pencil" style="margin-right:8px;color:#aaa"></i>Editar produto</h2>
       <button class="close-btn" onclick="fecharModal()">&times;</button>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div style="grid-column:1/-1" class="form-group"><label>Nome do produto *</label><input type="text" id="e-nome" value="${p.nome||''}" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none"></div>
-      <div class="form-group"><label>Código</label><input type="text" id="e-cod" value="${p.codigo||''}" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none"></div>
-      <div class="form-group"><label>Categoria</label><select id="e-cat" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none"><option value="">Selecione...</option>${catSelectOpts}</select></div>
-      <div class="form-group"><label>Comprimento</label><input type="text" id="e-comp" value="${p.comprimento||''}" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none"></div>
-      <div class="form-group"><label>Largura / Diâmetro</label><input type="text" id="e-larg" value="${p.largura||''}" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none"></div>
-      <div class="form-group"><label>Altura</label><input type="text" id="e-alt" value="${p.altura||''}" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none"></div>
-      <div class="form-group"><label>Espessura</label><input type="text" id="e-esp" value="${p.espessura||''}" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none"></div>
-      <div class="form-group"><label>Lateral</label><input type="text" id="e-lat" value="${p.lateral||''}" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none"></div>
-      <div class="form-group"><label>Unidade</label><select id="e-unid" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none">${unidOpts}</select></div>
-      <div style="grid-column:1/-1" class="form-group"><label>Observações</label><textarea id="e-obs" rows="2" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none;font-family:inherit">${p.obs||''}</textarea></div>
+
+    <!-- SEÇÃO 1: Dados gerais -->
+    <div style="${secStyle}">
+      <p style="${secTitle}"><i class="ti ti-info-circle" style="margin-right:4px"></i>Dados gerais</p>
+      <div class="form-group"><label>Nome do produto *</label><input type="text" id="e-nome" value="${p.nome||''}" style="${inputStyle}"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label>Código</label><input type="text" id="e-cod" value="${p.codigo||''}" style="${inputStyle}"></div>
+        <div class="form-group"><label>Unidade principal</label>
+          <select id="e-unid" style="${inputStyle}">${unidOpts}</select>
+        </div>
+      </div>
+      <div class="form-group"><label>Categoria</label>
+        <select id="e-cat" style="${inputStyle}"><option value="">Selecione...</option>${catSelectOpts}</select>
+      </div>
+      <div class="form-group"><label>Observações</label>
+        <textarea id="e-obs" rows="2" style="${inputStyle}">${p.obs||''}</textarea>
+      </div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:1rem">
+
+    <!-- SEÇÃO 2: Dimensões -->
+    <div style="${secStyle}">
+      <p style="${secTitle}"><i class="ti ti-ruler" style="margin-right:4px"></i>Dimensões <span style="font-weight:400;text-transform:none;font-size:11px">(valor + unidade)</span></p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label>Comprimento</label>${dimInput('e-comp-val',comp.val,'e-comp-unid',comp.unid)}</div>
+        <div class="form-group"><label>Largura</label>${dimInput('e-larg-val',larg.val,'e-larg-unid',larg.unid)}</div>
+        <div class="form-group"><label>Diâmetro</label>${dimInput('e-diam-val',parseValUnid(p.diametro,'mm').val,'e-diam-unid',parseValUnid(p.diametro,'mm').unid)}</div>
+        <div class="form-group"><label>Altura</label>${dimInput('e-alt-val',alt.val,'e-alt-unid',alt.unid)}</div>
+        <div class="form-group"><label>Espessura</label>${dimInput('e-esp-val',esp.val,'e-esp-unid',esp.unid)}</div>
+        <div class="form-group"><label>Lateral</label>${dimInput('e-lat-val',lat.val,'e-lat-unid',lat.unid)}</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:.5rem">
       <button class="btn btn-primary" onclick="salvarEdicao('${p.id}')" style="flex:1;justify-content:center"><i class="ti ti-check"></i> Salvar alterações</button>
       <button class="btn" onclick="abrirModal('${p.id}')"><i class="ti ti-arrow-left"></i> Voltar</button>
     </div>`;
@@ -801,22 +960,29 @@ window.abrirEdicao = function(id){
 window.salvarEdicao = async function(id){
   const nome = document.getElementById('e-nome').value.trim();
   if(!nome){notify('Informe o nome do produto');return;}
+  // Combina valor + unidade para cada dimensão
+  function combinar(valId, unidId){
+    const val = document.getElementById(valId)?.value.trim();
+    const unid = document.getElementById(unidId)?.value||'';
+    if(!val) return '';
+    return val + unid;
+  }
   setSyncStatus('syncing');
   try{
     await updateDoc(doc(db,'produtos',id),{
       nome,
-      codigo: document.getElementById('e-cod').value.trim(),
+      codigo:    document.getElementById('e-cod').value.trim(),
       categoria: document.getElementById('e-cat').value,
-      comprimento: document.getElementById('e-comp').value.trim(),
-      largura: document.getElementById('e-larg').value.trim(),
-      altura: document.getElementById('e-alt').value.trim(),
-      espessura: document.getElementById('e-esp').value.trim(),
-      lateral: document.getElementById('e-lat').value.trim(),
-      unidade: document.getElementById('e-unid').value,
-      obs: document.getElementById('e-obs').value.trim(),
+      unidade:   document.getElementById('e-unid').value,
+      obs:       document.getElementById('e-obs').value.trim(),
+      comprimento: combinar('e-comp-val','e-comp-unid'),
+      largura:     combinar('e-larg-val','e-larg-unid'),
+      diametro:    combinar('e-diam-val','e-diam-unid'),
+      altura:      combinar('e-alt-val','e-alt-unid'),
+      espessura:   combinar('e-esp-val','e-esp-unid'),
+      lateral:     combinar('e-lat-val','e-lat-unid'),
     });
     notify('Produto atualizado!');
-    // Reopen modal with updated data
     setTimeout(()=>abrirModal(id), 300);
   }catch(e){notify('Erro ao salvar: '+e.message);}
 }
@@ -1087,7 +1253,7 @@ function renderEstoques(){
 
 window.abrirModalEstoque = function(nomeEstoque){
   const itens = produtos.filter(p=>p.estoques&&(p.estoques[nomeEstoque]||0)>0).sort((a,b)=>a.nome.localeCompare(b.nome));
-  const rows = itens.map(p=>`<tr onclick="fecharModal();setTimeout(()=>abrirModal('${p.id}'),100)" style="cursor:pointer"><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0">${p.foto?`<img src="${p.foto}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px">`:''}<span style="font-weight:500">${p.nome}</span>${p.categoria?`<span style="font-size:11px;color:#aaa;margin-left:6px">${p.categoria}</span>`:''}</td><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0;white-space:nowrap;font-weight:600;color:#2d7a3a">${p.estoques[nomeEstoque]} ${p.unidade}</td></tr>`).join('');
+  const rows = itens.map(p=>`<tr onclick="fecharModal();setTimeout(()=>abrirModal('${p.id}'),100)" style="cursor:pointer"><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0">${p.foto?`<img src="${p.foto}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px">`:''}<span style="font-weight:500">${p.nome}</span>${p.categoria?`<span style="font-size:11px;color:#aaa;margin-left:6px">${p.categoria}</span>`:''}</td><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0;white-space:nowrap;font-weight:600;color:#5A8A2C">${p.estoques[nomeEstoque]} ${p.unidade}</td></tr>`).join('');
   document.getElementById('modal').innerHTML=`
     <div class="modal-header">
       <h2><i class="ti ti-building-warehouse" style="margin-right:8px;color:#aaa"></i>${nomeEstoque}</h2>
@@ -1100,7 +1266,7 @@ window.abrirModalEstoque = function(nomeEstoque){
 
 window.filtrarItensEstoque = function(query,nomeEstoque){
   const itens=produtos.filter(p=>p.estoques&&(p.estoques[nomeEstoque]||0)>0).filter(p=>p.nome.toLowerCase().includes(query.toLowerCase())||(p.categoria||'').toLowerCase().includes(query.toLowerCase())).sort((a,b)=>a.nome.localeCompare(b.nome));
-  document.getElementById('corpoTabelaEstoque').innerHTML=itens.map(p=>`<tr onclick="fecharModal();setTimeout(()=>abrirModal('${p.id}'),100)" style="cursor:pointer"><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0"><span style="font-weight:500">${p.nome}</span>${p.categoria?`<span style="font-size:11px;color:#aaa;margin-left:6px">${p.categoria}</span>`:''}</td><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0;white-space:nowrap;font-weight:600;color:#2d7a3a">${p.estoques[nomeEstoque]} ${p.unidade}</td></tr>`).join('');
+  document.getElementById('corpoTabelaEstoque').innerHTML=itens.map(p=>`<tr onclick="fecharModal();setTimeout(()=>abrirModal('${p.id}'),100)" style="cursor:pointer"><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0"><span style="font-weight:500">${p.nome}</span>${p.categoria?`<span style="font-size:11px;color:#aaa;margin-left:6px">${p.categoria}</span>`:''}</td><td style="padding:8px 10px;border-bottom:1px solid #f4f4f0;white-space:nowrap;font-weight:600;color:#5A8A2C">${p.estoques[nomeEstoque]} ${p.unidade}</td></tr>`).join('');
 }
 
 window.adicionarEstoque = async function(){
@@ -1320,6 +1486,284 @@ window.pausarBuscaFotos=function(){
   fotoPausado=true;
   document.getElementById('btnPausarFotos').disabled=true;
   addFotoLog('⏸ Pausando após produto atual...');
+}
+
+
+// ========== NORMALIZAÇÃO DE DADOS ==========
+
+let correcoesPendentes = [];
+
+// Unidades conhecidas por tipo de dimensão
+const UNID_COMP = ['mm','cm','m','pol','"',"'"];
+const UNID_MAPA = {
+  comprimento:'m', largura:'cm', altura:'cm',
+  espessura:'mm', lateral:'cm', diametro:'cm'
+};
+
+// Extrai número e unidade de uma string
+function extrairNumUnid(str){
+  if(!str||!str.trim()) return null;
+  const m = str.trim().match(/^([0-9]+[.,]?[0-9]*)\s*([a-zA-Z²³%"'/]+)?$/);
+  if(m) return {num: m[1], unid: m[2]||null, original: str.trim()};
+  return null;
+}
+
+// Tenta extrair dimensões da descrição do produto
+function extrairDimsDescricao(nome){
+  const result = {};
+  const text = nome.toUpperCase();
+
+  // Padrões comuns: L=1.5M, LARG=50CM, ESP1MM, 3X10CM, DN3/4, Ø55CM
+  // Comprimento: L= ou COMP= ou simplesmente número+unidade
+  const patterns = [
+    {campo:'comprimento', regex:/(?:COMP\.?=?|COMPRIMENTO=?|L\.?=?)([0-9]+[.,]?[0-9]*)\s*(M|CM|MM)?/i},
+    {campo:'largura',     regex:/(?:LARG\.?=?|LARGURA=?|W=?)([0-9]+[.,]?[0-9]*)\s*(M|CM|MM)?/i},
+    {campo:'altura',      regex:/(?:ALT\.?=?|ALTURA=?|H=?)([0-9]+[.,]?[0-9]*)\s*(M|CM|MM)?/i},
+    {campo:'espessura',   regex:/(?:ESP\.?=?|ESPESSURA=?|E=?)([0-9]+[.,]?[0-9]*)\s*(M|CM|MM)?/i},
+    {campo:'diametro',    regex:/(?:Ø|DN|DIAM\.?=?|DIAMETRO=?)([0-9]+[.,]?[0-9]*)\s*(M|CM|MM|")?/i},
+    // Padrão AxBxC (ex: 3X10CM, 6X25X17CM)
+  ];
+
+  patterns.forEach(({campo, regex})=>{
+    const m = text.match(regex);
+    if(m){
+      const num = m[1].replace(',','.');
+      const unid = (m[2]||'').toLowerCase() || UNID_MAPA[campo];
+      result[campo] = num + unid;
+    }
+  });
+
+  // Padrão AxB (largura x altura) com unidade no final: 50X50CM, 1.2X1.21M
+  const axb = text.match(/([0-9]+[.,]?[0-9]*)\s*[Xx×]\s*([0-9]+[.,]?[0-9]*)\s*(M|CM|MM)(?:\s|$)/i);
+  if(axb && !result.largura && !result.altura){
+    result.largura = axb[1].replace(',','.') + axb[3].toLowerCase();
+    result.altura  = axb[2].replace(',','.') + axb[3].toLowerCase();
+  }
+
+  return result;
+}
+
+// Verifica e gera correções para um produto
+function verificarProduto(p){
+  const correcoes = [];
+  const campos = ['comprimento','largura','altura','espessura','lateral','diametro'];
+
+  // 1. Checar se dimensões têm unidade
+  campos.forEach(campo=>{
+    const val = p[campo];
+    if(!val||!val.trim()) return;
+    const parsed = extrairNumUnid(val);
+    if(parsed && !parsed.unid){
+      // Tem número mas sem unidade
+      const unidSugerida = UNID_MAPA[campo]||'m';
+      correcoes.push({
+        campo,
+        tipo: 'add_unidade',
+        antes: val,
+        depois: parsed.num + unidSugerida,
+        descricao: `"${val}" sem unidade → "${parsed.num+unidSugerida}"`
+      });
+    }
+  });
+
+  // 2. Extrair dimensões da descrição e cruzar com campos
+  const dimsDesc = extrairDimsDescricao(p.nome||'');
+  Object.entries(dimsDesc).forEach(([campo, valDesc])=>{
+    const valAtual = p[campo];
+    if(!valAtual||!valAtual.trim()){
+      // Campo vazio mas tem info na descrição
+      correcoes.push({
+        campo,
+        tipo: 'preencher_desc',
+        antes: '',
+        depois: valDesc,
+        descricao: `Campo vazio, descrição indica "${valDesc}"`
+      });
+    }
+  });
+
+  return correcoes;
+}
+
+window.analisarProdutos = async function(){
+  const btn = document.getElementById('btnAnalisar');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Analisando...';
+  document.getElementById('normProgress').style.display='block';
+
+  correcoesPendentes = [];
+  const total = produtos.length;
+  let analisados = 0;
+
+  for(const p of produtos){
+    const corrs = verificarProduto(p);
+    if(corrs.length > 0){
+      correcoesPendentes.push({produto:p, correcoes:corrs, selecionado:true});
+    }
+    analisados++;
+    document.getElementById('normProgressFill').style.width = Math.round(analisados/total*100)+'%';
+    if(analisados%50===0) await new Promise(r=>setTimeout(r,10));
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-search"></i> Analisar novamente';
+
+  const comCorr = correcoesPendentes.length;
+  const totalCorr = correcoesPendentes.reduce((a,c)=>a+c.correcoes.length,0);
+
+  document.getElementById('normStats').style.display='flex';
+  document.getElementById('normStats').innerHTML = `
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#3F3F3F">${total}</strong><span style="color:#888;font-size:11px">Produtos analisados</span></div>
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#C8102E">${comCorr}</strong><span style="color:#888;font-size:11px">Com inconsistências</span></div>
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#5A8A2C">${totalCorr}</strong><span style="color:#888;font-size:11px">Correções sugeridas</span></div>
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#3F3F3F">${total-comCorr}</strong><span style="color:#888;font-size:11px">Sem inconsistências</span></div>
+    </div>`;
+
+  if(comCorr>0){
+    document.getElementById('btnAplicar').style.display='';
+    document.getElementById('btnSelAll').style.display='';
+    document.getElementById('btnDesAll').style.display='';
+  }
+
+  renderPreview();
+}
+
+function renderPreview(){
+  const div = document.getElementById('normPreview');
+  if(!correcoesPendentes.length){
+    div.innerHTML='<div style="text-align:center;padding:2rem;color:#5A8A2C;font-size:14px"><i class="ti ti-circle-check" style="font-size:32px;display:block;margin-bottom:8px"></i>Nenhuma inconsistência encontrada!</div>';
+    return;
+  }
+
+  div.innerHTML = correcoesPendentes.map((item,idx)=>`
+    <div class="norm-card">
+      <div class="norm-card-header" onclick="toggleNormCard(${idx})">
+        <input type="checkbox" id="chk-${idx}" ${item.selecionado?'checked':''} onclick="event.stopPropagation();toggleSelecao(${idx})">
+        <span class="norm-card-name">${item.produto.nome}</span>
+        <span class="norm-badge norm-badge-warn">${item.correcoes.length} correção(ões)</span>
+        <i class="ti ti-chevron-down" id="chev-${idx}" style="color:#aaa;font-size:14px"></i>
+      </div>
+      <div id="norm-detail-${idx}">
+        <table class="norm-table">
+          <thead><tr><th>Campo</th><th>Valor atual</th><th></th><th>Valor sugerido (editável)</th><th>Tipo</th><th></th></tr></thead>
+          <tbody>
+            ${item.correcoes.map((c,ci)=>`
+              <tr>
+                <td style="font-weight:500;text-transform:capitalize">${c.campo}</td>
+                <td><span class="norm-before">${c.antes||'(vazio)'}</span></td>
+                <td><span class="norm-arrow">→</span></td>
+                <td>
+                  <input type="text" id="norm-val-${idx}-${ci}" value="${c.depois}"
+                    style="padding:5px 8px;border:1px solid #C8102E;border-radius:6px;font-size:13px;color:#5A8A2C;font-weight:500;width:120px;outline:none"
+                    onchange="correcoesPendentes[${idx}].correcoes[${ci}].depois=this.value">
+                </td>
+                <td style="color:#888;font-size:11px">${c.tipo==='add_unidade'?'Adicionar unidade':'Preencher da descrição'}</td>
+                <td>
+                  <button onclick="salvarCorrecaoUnica('${item.produto.id}','${c.campo}',${idx},${ci})"
+                    style="padding:4px 10px;font-size:11px;border:1px solid #e8e8e0;border-radius:6px;background:#fff;cursor:pointer;color:#3F3F3F;white-space:nowrap"
+                    title="Salvar só este campo">
+                    <i class="ti ti-device-floppy"></i> Salvar
+                  </button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+        <div style="padding:8px 12px;border-top:1px solid #f0f0e8;display:flex;gap:8px;justify-content:flex-end">
+          <button onclick="salvarTodasCorrecoesProduto('${item.produto.id}',${idx})"
+            class="btn btn-primary" style="font-size:12px;padding:5px 14px">
+            <i class="ti ti-check"></i> Salvar todas as correções deste produto
+          </button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.toggleNormCard = function(idx){
+  const detail = document.getElementById('norm-detail-'+idx);
+  const chev = document.getElementById('chev-'+idx);
+  const isHidden = detail.style.display==='none';
+  detail.style.display = isHidden?'':'none';
+  chev.style.transform = isHidden?'':'rotate(-90deg)';
+}
+
+window.toggleSelecao = function(idx){
+  correcoesPendentes[idx].selecionado = document.getElementById('chk-'+idx).checked;
+}
+
+window.selecionarTodasCorrecoes = function(val){
+  correcoesPendentes.forEach((item,idx)=>{
+    item.selecionado = val;
+    const chk = document.getElementById('chk-'+idx);
+    if(chk) chk.checked = val;
+  });
+}
+
+// Salvar uma correção individual
+window.salvarCorrecaoUnica = async function(prodId, campo, idx, ci){
+  // Pega valor atual do input (pode ter sido editado)
+  const inputEl = document.getElementById(`norm-val-${idx}-${ci}`);
+  const valor = inputEl ? inputEl.value.trim() : correcoesPendentes[idx].correcoes[ci].depois;
+  if(!valor){notify('Informe um valor');return;}
+  setSyncStatus('syncing');
+  try{
+    await updateDoc(doc(db,'produtos',prodId),{[campo]: valor});
+    // Visual feedback
+    inputEl.style.borderColor='#5A8A2C';
+    inputEl.style.background='#eaf4d8';
+    const btn = inputEl.closest('tr').querySelector('button');
+    if(btn){btn.innerHTML='<i class="ti ti-check"></i> Salvo!';btn.style.color='#5A8A2C';}
+    notify(`Campo "${campo}" atualizado!`);
+  }catch(e){notify('Erro: '+e.message);}
+}
+
+// Salvar todas as correções de um produto de uma vez
+window.salvarTodasCorrecoesProduto = async function(prodId, idx){
+  const item = correcoesPendentes[idx];
+  if(!item) return;
+  const updates = {};
+  item.correcoes.forEach((c,ci)=>{
+    const inputEl = document.getElementById(`norm-val-${idx}-${ci}`);
+    updates[c.campo] = inputEl ? inputEl.value.trim() : c.depois;
+  });
+  setSyncStatus('syncing');
+  try{
+    await updateDoc(doc(db,'produtos',prodId), updates);
+    // Visual: marcar card como corrigido
+    const card = document.getElementById(`norm-detail-${idx}`);
+    if(card){
+      card.querySelectorAll('input[type=text]').forEach(inp=>{
+        inp.style.borderColor='#5A8A2C';inp.style.background='#eaf4d8';
+      });
+    }
+    const badge = document.querySelector(`#chk-${idx}`)?.closest('.norm-card-header')?.querySelector('.norm-badge');
+    if(badge){badge.className='norm-badge norm-badge-ok';badge.textContent='Corrigido ✓';}
+    notify('Produto atualizado com sucesso!');
+  }catch(e){notify('Erro: '+e.message);}
+}
+
+window.aplicarCorrecoes = async function(){
+  const selecionados = correcoesPendentes.filter(i=>i.selecionado);
+  if(!selecionados.length){notify('Nenhum item selecionado');return;}
+  if(!confirm(`Aplicar correções em ${selecionados.length} produto(s)? Esta ação não pode ser desfeita.`)) return;
+
+  document.getElementById('btnAplicar').disabled=true;
+  setSyncStatus('syncing');
+  let ok=0;
+  for(const item of selecionados){
+    const updates = {};
+    item.correcoes.forEach((c,ci)=>{
+      const inputEl = document.getElementById(`norm-val-${correcoesPendentes.indexOf(item)}-${ci}`);
+      updates[c.campo] = inputEl ? inputEl.value.trim() : c.depois;
+    });
+    try{
+      await updateDoc(doc(db,'produtos',item.produto.id), updates);
+      ok++;
+    }catch(e){ console.error('Erro ao atualizar '+item.produto.nome, e); }
+  }
+  document.getElementById('btnAplicar').disabled=false;
+  notify(`${ok} produto(s) atualizados com sucesso!`);
+  setTimeout(()=>analisarProdutos(), 800);
 }
 
 // Iniciar
