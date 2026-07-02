@@ -360,18 +360,41 @@ header p{font-size:13px;color:#666}
   <!-- NORMALIZAR -->
   <div id="page-normalizar" class="page">
     <p class="section-title">Normalização automática de dados</p>
-    <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;padding:1.25rem;margin-bottom:1rem">
-      <p style="font-size:13px;color:#666;margin-bottom:1rem">A ferramenta analisa todos os produtos e identifica inconsistências: dimensões sem unidade, valores que constam na descrição mas não nas colunas, e campos em branco que podem ser preenchidos automaticamente.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem">
-        <button class="btn btn-primary" id="btnAnalisar" onclick="analisarProdutos()"><i class="ti ti-search"></i> Analisar todos os produtos</button>
-        <button class="btn" id="btnAplicar" onclick="aplicarCorrecoes()" style="display:none"><i class="ti ti-check"></i> Aplicar correções selecionadas</button>
-        <button class="btn" onclick="selecionarTodasCorrecoes(true)" id="btnSelAll" style="display:none;font-size:12px">Selecionar todas</button>
-        <button class="btn" onclick="selecionarTodasCorrecoes(false)" id="btnDesAll" style="display:none;font-size:12px">Desmarcar todas</button>
-      </div>
-      <div class="foto-progress" id="normProgress" style="display:none"><div class="foto-progress-fill" id="normProgressFill"></div></div>
-      <div id="normStats" style="display:none;margin-bottom:1rem"></div>
+    <!-- Sub-abas -->
+    <div style="display:flex;gap:6px;margin-bottom:1.25rem;border-bottom:1px solid #e8e8e0;padding-bottom:.75rem">
+      <button class="btn active" id="tab-inconsistencias" onclick="showNormTab('inconsistencias')" style="font-size:13px"><i class="ti ti-wand"></i> Inconsistências</button>
+      <button class="btn" id="tab-duplicatas" onclick="showNormTab('duplicatas')" style="font-size:13px"><i class="ti ti-copy"></i> Duplicatas</button>
     </div>
-    <div id="normPreview"></div>
+
+    <!-- Painel Inconsistências -->
+    <div id="norm-tab-inconsistencias">
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;padding:1.25rem;margin-bottom:1rem">
+        <p style="font-size:13px;color:#666;margin-bottom:1rem">Analisa todos os produtos e identifica inconsistências: dimensões sem unidade, valores que constam na descrição mas não nas colunas, e campos em branco que podem ser preenchidos automaticamente.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem">
+          <button class="btn btn-primary" id="btnAnalisar" onclick="analisarProdutos()"><i class="ti ti-search"></i> Analisar todos os produtos</button>
+          <button class="btn" id="btnAplicar" onclick="aplicarCorrecoes()" style="display:none"><i class="ti ti-check"></i> Aplicar correções selecionadas</button>
+          <button class="btn" onclick="selecionarTodasCorrecoes(true)" id="btnSelAll" style="display:none;font-size:12px">Selecionar todas</button>
+          <button class="btn" onclick="selecionarTodasCorrecoes(false)" id="btnDesAll" style="display:none;font-size:12px">Desmarcar todas</button>
+        </div>
+        <div class="foto-progress" id="normProgress" style="display:none"><div class="foto-progress-fill" id="normProgressFill"></div></div>
+        <div id="normStats" style="display:none;margin-bottom:1rem"></div>
+      </div>
+      <div id="normPreview"></div>
+    </div>
+
+    <!-- Painel Duplicatas -->
+    <div id="norm-tab-duplicatas" style="display:none">
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;padding:1.25rem;margin-bottom:1rem">
+        <p style="font-size:13px;color:#666;margin-bottom:1rem">Detecta produtos com o mesmo nome cadastrados mais de uma vez. Ao mesclar, as quantidades de cada estoque são somadas e o produto duplicado é removido.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem">
+          <button class="btn btn-primary" id="btnAnalisarDup" onclick="analisarDuplicatas()"><i class="ti ti-search"></i> Detectar duplicatas</button>
+          <button class="btn" id="btnMesclarTodas" onclick="mesclarTodasDuplicatas()" style="display:none"><i class="ti ti-git-merge"></i> Mesclar todas selecionadas</button>
+        </div>
+        <div class="foto-progress" id="dupProgress" style="display:none"><div class="foto-progress-fill" id="dupProgressFill"></div></div>
+        <div id="dupStats" style="display:none;margin-bottom:1rem"></div>
+      </div>
+      <div id="dupPreview"></div>
+    </div>
   </div>
 
 </div>
@@ -388,7 +411,7 @@ header p{font-size:13px;color:#666}
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, updateDoc, deleteDoc, getDocs, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBoehjNE0wUj62IjiLI13WWKhHkrZEOmQw",
@@ -1587,7 +1610,26 @@ function verificarProduto(p){
   return correcoes;
 }
 
+// Lista de ignorados persistida no Firebase
+let ignorados = new Set();
+const IGNORADOS_DOC = 'config/norm_ignorados';
+
+async function carregarIgnorados(){
+  try{
+    const snap = await getDoc(doc(db,'config','norm_ignorados'));
+    if(snap.exists()) ignorados = new Set(snap.data().lista||[]);
+    else ignorados = new Set();
+  }catch{ ignorados = new Set(); }
+}
+async function salvarIgnorados(){
+  try{
+    await setDoc(doc(db,'config','norm_ignorados'),{lista:[...ignorados]});
+  }catch(e){ console.error('Erro ao salvar ignorados',e); }
+}
+function chaveIgnorado(prodId, campo){ return prodId+'|'+campo; }
+
 window.analisarProdutos = async function(){
+  await carregarIgnorados();
   const btn = document.getElementById('btnAnalisar');
   btn.disabled = true;
   btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Analisando...';
@@ -1599,8 +1641,10 @@ window.analisarProdutos = async function(){
 
   for(const p of produtos){
     const corrs = verificarProduto(p);
-    if(corrs.length > 0){
-      correcoesPendentes.push({produto:p, correcoes:corrs, selecionado:true});
+    // Filtra correções que já foram ignoradas
+    const corrsFiltradas = corrs.filter(c => !ignorados.has(chaveIgnorado(p.id, c.campo)));
+    if(corrsFiltradas.length > 0){
+      correcoesPendentes.push({produto:p, correcoes:corrsFiltradas, selecionado:true});
     }
     analisados++;
     document.getElementById('normProgressFill').style.width = Math.round(analisados/total*100)+'%';
@@ -1612,14 +1656,16 @@ window.analisarProdutos = async function(){
 
   const comCorr = correcoesPendentes.length;
   const totalCorr = correcoesPendentes.reduce((a,c)=>a+c.correcoes.length,0);
+  const totalIgnorados = ignorados.size;
 
   document.getElementById('normStats').style.display='flex';
   document.getElementById('normStats').innerHTML = `
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
       <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#3F3F3F">${total}</strong><span style="color:#888;font-size:11px">Produtos analisados</span></div>
       <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#C8102E">${comCorr}</strong><span style="color:#888;font-size:11px">Com inconsistências</span></div>
       <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#5A8A2C">${totalCorr}</strong><span style="color:#888;font-size:11px">Correções sugeridas</span></div>
-      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#3F3F3F">${total-comCorr}</strong><span style="color:#888;font-size:11px">Sem inconsistências</span></div>
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#3F3F3F">${total-comCorr}</strong><span style="color:#888;font-size:11px">Ok / sem pendências</span></div>
+      ${totalIgnorados>0?`<div style="background:#f4f4f0;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px;display:flex;align-items:center;gap:8px"><strong style="font-size:16px;color:#888">${totalIgnorados}</strong><span style="color:#aaa;font-size:11px">Campo(s) ignorado(s)</span><button onclick="limparIgnorados()" style="font-size:11px;padding:2px 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;color:#C8102E">Resetar</button></div>`:''}
     </div>`;
 
   if(comCorr>0){
@@ -1661,11 +1707,16 @@ function renderPreview(){
                     onchange="correcoesPendentes[${idx}].correcoes[${ci}].depois=this.value">
                 </td>
                 <td style="color:#888;font-size:11px">${c.tipo==='add_unidade'?'Adicionar unidade':'Preencher da descrição'}</td>
-                <td>
+                <td style="white-space:nowrap">
                   <button onclick="salvarCorrecaoUnica('${item.produto.id}','${c.campo}',${idx},${ci})"
-                    style="padding:4px 10px;font-size:11px;border:1px solid #e8e8e0;border-radius:6px;background:#fff;cursor:pointer;color:#3F3F3F;white-space:nowrap"
-                    title="Salvar só este campo">
+                    style="padding:4px 10px;font-size:11px;border:1px solid #e8e8e0;border-radius:6px;background:#fff;cursor:pointer;color:#3F3F3F;margin-right:4px"
+                    title="Salvar este campo">
                     <i class="ti ti-device-floppy"></i> Salvar
+                  </button>
+                  <button onclick="ignorarCorrecao('${item.produto.id}','${c.campo}',${idx},${ci})"
+                    style="padding:4px 10px;font-size:11px;border:1px solid #e8e8e0;border-radius:6px;background:#fff;cursor:pointer;color:#888"
+                    title="Marcar como revisado — não sugerir novamente">
+                    <i class="ti ti-eye-off"></i> Ignorar
                   </button>
                 </td>
               </tr>`).join('')}
@@ -1744,6 +1795,36 @@ window.salvarTodasCorrecoesProduto = async function(prodId, idx){
   }catch(e){notify('Erro: '+e.message);}
 }
 
+window.ignorarCorrecao = async function(prodId, campo, idx, ci){
+  const chave = chaveIgnorado(prodId, campo);
+  ignorados.add(chave);
+  await salvarIgnorados();
+  // Remove visualmente a linha
+  const tr = document.getElementById(`norm-val-${idx}-${ci}`)?.closest('tr');
+  if(tr){
+    tr.style.opacity='0.4';
+    tr.style.pointerEvents='none';
+    const btn = tr.querySelectorAll('button')[1];
+    if(btn){btn.innerHTML='<i class="ti ti-check"></i> Ignorado';btn.style.color='#5A8A2C';}
+  }
+  // Remove da lista interna
+  correcoesPendentes[idx].correcoes = correcoesPendentes[idx].correcoes.filter((_,i)=>i!==ci);
+  // Se o produto ficou sem correções, remove o card
+  if(correcoesPendentes[idx].correcoes.length===0){
+    const card = tr?.closest('.norm-card');
+    if(card){card.style.opacity='0.4';card.querySelector('.norm-badge').textContent='Revisado ✓';card.querySelector('.norm-badge').className='norm-badge norm-badge-ok';}
+  }
+  notify(`Campo "${campo}" marcado como revisado — não aparecerá mais.`);
+}
+
+window.limparIgnorados = async function(){
+  if(!confirm('Resetar todos os campos ignorados? Eles voltarão a aparecer na próxima análise.')) return;
+  ignorados = new Set();
+  await salvarIgnorados();
+  notify('Lista de ignorados resetada.');
+  analisarProdutos();
+}
+
 window.aplicarCorrecoes = async function(){
   const selecionados = correcoesPendentes.filter(i=>i.selecionado);
   if(!selecionados.length){notify('Nenhum item selecionado');return;}
@@ -1766,6 +1847,175 @@ window.aplicarCorrecoes = async function(){
   document.getElementById('btnAplicar').disabled=false;
   notify(`${ok} produto(s) atualizados com sucesso!`);
   setTimeout(()=>analisarProdutos(), 800);
+}
+
+
+// ===== SUB-ABAS NORMALIZAR =====
+window.showNormTab = function(tab){
+  document.getElementById('norm-tab-inconsistencias').style.display = tab==='inconsistencias'?'':'none';
+  document.getElementById('norm-tab-duplicatas').style.display = tab==='duplicatas'?'':'none';
+  document.getElementById('tab-inconsistencias').classList.toggle('active', tab==='inconsistencias');
+  document.getElementById('tab-duplicatas').classList.toggle('active', tab==='duplicatas');
+}
+
+// ===== DETECÇÃO E MESCLAGEM DE DUPLICATAS =====
+let gruposDuplicatas = [];
+
+window.analisarDuplicatas = function(){
+  const btn = document.getElementById('btnAnalisarDup');
+  btn.disabled=true;
+  btn.innerHTML='<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Analisando...';
+  document.getElementById('dupProgress').style.display='block';
+  document.getElementById('dupProgressFill').style.width='50%';
+
+  // Agrupa por nome normalizado (trim + lowercase)
+  const grupos = {};
+  produtos.forEach(p=>{
+    const chave = (p.nome||'').trim().toLowerCase();
+    if(!grupos[chave]) grupos[chave]=[];
+    grupos[chave].push(p);
+  });
+
+  gruposDuplicatas = Object.values(grupos)
+    .filter(g=>g.length>1)
+    .map(g=>({itens:g, selecionado:true}));
+
+  document.getElementById('dupProgressFill').style.width='100%';
+  btn.disabled=false;
+  btn.innerHTML='<i class="ti ti-search"></i> Detectar novamente';
+
+  const totalDup = gruposDuplicatas.length;
+  const totalItens = gruposDuplicatas.reduce((a,g)=>a+g.itens.length,0);
+
+  document.getElementById('dupStats').style.display='block';
+  document.getElementById('dupStats').innerHTML=`
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#C8102E">${totalDup}</strong><span style="color:#888;font-size:11px">Grupos de duplicatas</span></div>
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#3F3F3F">${totalItens}</strong><span style="color:#888;font-size:11px">Produtos duplicados</span></div>
+      <div style="background:#eaf4d8;border:1px solid #c8e6a0;border-radius:8px;padding:8px 14px;font-size:13px"><strong style="display:block;font-size:18px;color:#5A8A2C">${totalItens-totalDup}</strong><span style="color:#5A8A2C;font-size:11px">Serão removidos após mesclagem</span></div>
+    </div>`;
+
+  if(totalDup>0) document.getElementById('btnMesclarTodas').style.display='';
+  renderDuplicatasPreview();
+}
+
+function renderDuplicatasPreview(){
+  const div = document.getElementById('dupPreview');
+  if(!gruposDuplicatas.length){
+    div.innerHTML='<div style="text-align:center;padding:2rem;color:#5A8A2C;font-size:14px"><i class="ti ti-circle-check" style="font-size:32px;display:block;margin-bottom:8px"></i>Nenhuma duplicata encontrada!</div>';
+    return;
+  }
+
+  div.innerHTML = gruposDuplicatas.map((grupo,gi)=>{
+    const p0 = grupo.itens[0];
+    // Soma estoques de todos os itens do grupo
+    const estoquesMesclados = {};
+    grupo.itens.forEach(p=>{
+      Object.entries(p.estoques||{}).forEach(([loc,qtd])=>{
+        estoquesMesclados[loc] = (estoquesMesclados[loc]||0) + qtd;
+      });
+    });
+    const estoqueStr = Object.entries(estoquesMesclados).map(([loc,q])=>`${loc}: ${q}`).join(' · ');
+    const totalQtd = Object.values(estoquesMesclados).reduce((a,b)=>a+b,0);
+
+    return `<div class="norm-card" style="margin-bottom:10px">
+      <div class="norm-card-header" style="cursor:default">
+        <input type="checkbox" id="dup-chk-${gi}" checked onclick="gruposDuplicatas[${gi}].selecionado=this.checked">
+        <span class="norm-card-name">${p0.nome}</span>
+        <span class="norm-badge norm-badge-warn">${grupo.itens.length} cópias</span>
+      </div>
+      <div style="padding:1rem">
+        <!-- Itens que serão mesclados -->
+        <p style="font-size:12px;color:#888;margin-bottom:8px;font-weight:500">ITENS QUE SERÃO MESCLADOS:</p>
+        <table class="norm-table" style="margin-bottom:1rem">
+          <thead><tr><th>ID</th><th>Unidade</th><th>Categoria</th><th>Estoques</th><th>Qtd</th></tr></thead>
+          <tbody>
+            ${grupo.itens.map((p,pi)=>`<tr style="${pi===0?'background:#eaf4d8':''}">
+              <td style="font-size:11px;color:#aaa">${pi===0?'<strong style="color:#5A8A2C">MANTER</strong>':'Remover'}</td>
+              <td>${p.unidade||'—'}</td>
+              <td style="font-size:11px">${p.categoria||'—'}</td>
+              <td style="font-size:11px">${Object.entries(p.estoques||{}).map(([l,q])=>`${l}:${q}`).join(', ')||'—'}</td>
+              <td>${getTotalQtd(p)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        <!-- Resultado da mesclagem -->
+        <div style="background:#f0f7e8;border:1px solid #c8e6a0;border-radius:8px;padding:10px 14px;font-size:13px">
+          <p style="font-weight:600;color:#5A8A2C;margin-bottom:4px"><i class="ti ti-git-merge" style="margin-right:4px"></i>Resultado após mesclagem:</p>
+          <p style="color:#3F3F3F">Quantidade total: <strong>${totalQtd} ${p0.unidade||''}</strong></p>
+          <p style="color:#666;font-size:12px;margin-top:2px">${estoqueStr}</p>
+        </div>
+        <div style="margin-top:10px;display:flex;justify-content:flex-end">
+          <button onclick="mesclarGrupo(${gi})" class="btn btn-primary" style="font-size:12px;padding:5px 14px">
+            <i class="ti ti-git-merge"></i> Mesclar este grupo
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.mesclarGrupo = async function(gi){
+  const grupo = gruposDuplicatas[gi];
+  if(!grupo) return;
+  if(!confirm(`Mesclar ${grupo.itens.length} cópias de "${grupo.itens[0].nome}"? Os duplicados serão removidos e as quantidades somadas.`)) return;
+
+  setSyncStatus('syncing');
+  try{
+    const p0 = grupo.itens[0]; // produto que vai ser mantido
+    // Soma todos os estoques
+    const estoquesMesclados = {};
+    grupo.itens.forEach(p=>{
+      Object.entries(p.estoques||{}).forEach(([loc,qtd])=>{
+        estoquesMesclados[loc]=(estoquesMesclados[loc]||0)+qtd;
+      });
+    });
+    // Atualiza o primeiro produto com estoques somados
+    await updateDoc(doc(db,'produtos',p0.id),{estoques:estoquesMesclados});
+    // Remove os demais
+    for(let i=1;i<grupo.itens.length;i++){
+      await deleteDoc(doc(db,'produtos',grupo.itens[i].id));
+    }
+    // Remove grupo da lista local
+    gruposDuplicatas.splice(gi,1);
+    notify(`Grupo mesclado! ${grupo.itens.length-1} duplicata(s) removida(s).`);
+    renderDuplicatasPreview();
+    // Atualiza stats
+    const totalDup = gruposDuplicatas.length;
+    if(totalDup===0){
+      document.getElementById('dupStats').innerHTML='<div style="color:#5A8A2C;font-size:13px"><i class="ti ti-circle-check"></i> Todas as duplicatas foram resolvidas!</div>';
+      document.getElementById('btnMesclarTodas').style.display='none';
+    }
+  }catch(e){notify('Erro ao mesclar: '+e.message);}
+}
+
+window.mesclarTodasDuplicatas = async function(){
+  const selecionados = gruposDuplicatas.filter(g=>g.selecionado);
+  if(!selecionados.length){notify('Nenhum grupo selecionado');return;}
+  if(!confirm(`Mesclar ${selecionados.length} grupo(s)? Esta ação não pode ser desfeita.`)) return;
+
+  setSyncStatus('syncing');
+  let ok=0;
+  for(const grupo of selecionados){
+    try{
+      const p0=grupo.itens[0];
+      const estoquesMesclados={};
+      grupo.itens.forEach(p=>{
+        Object.entries(p.estoques||{}).forEach(([loc,qtd])=>{
+          estoquesMesclados[loc]=(estoquesMesclados[loc]||0)+qtd;
+        });
+      });
+      await updateDoc(doc(db,'produtos',p0.id),{estoques:estoquesMesclados});
+      for(let i=1;i<grupo.itens.length;i++){
+        await deleteDoc(doc(db,'produtos',grupo.itens[i].id));
+      }
+      ok++;
+    }catch(e){console.error(e);}
+  }
+  gruposDuplicatas = gruposDuplicatas.filter(g=>!g.selecionado);
+  notify(`${ok} grupo(s) mesclados com sucesso!`);
+  renderDuplicatasPreview();
+  if(gruposDuplicatas.length===0) document.getElementById('btnMesclarTodas').style.display='none';
 }
 
 // Iniciar
