@@ -276,10 +276,14 @@ header p{font-size:13px;color:#666}
         </div>
         <div class="form-row">
           <div class="form-group"><label>Comprimento</label><input type="text" id="f-comp" placeholder="Ex: 6m"></div>
-          <div class="form-group"><label>Largura / Diâmetro</label><input type="text" id="f-larg" placeholder="Ex: 100mm"></div>
+          <div class="form-group"><label>Largura</label><input type="text" id="f-larg" placeholder="Ex: 50cm"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Espessura / Altura</label><input type="text" id="f-esp" placeholder="Ex: 3mm"></div>
+          <div class="form-group"><label>Diâmetro</label><input type="text" id="f-diam" placeholder="Ex: 100mm"></div>
+          <div class="form-group"><label>Altura</label><input type="text" id="f-alt" placeholder="Ex: 2m"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Espessura</label><input type="text" id="f-esp" placeholder="Ex: 3mm"></div>
           <div class="form-group"><label>Unidade</label>
             <select id="f-unid"><option>un</option><option>m</option><option>m²</option><option>m³</option><option>kg</option><option>L</option><option>cx</option><option>rolo</option><option>barra</option></select>
           </div>
@@ -485,6 +489,22 @@ function getTotalQtd(p){
   return Object.values(p.estoques||{}).reduce((a,b)=>a+(b||0),0);
 }
 
+// Formata número usando vírgula como separador decimal
+function fmtNum(val){
+  if(val===null||val===undefined||val==='') return '—';
+  const n = parseFloat(String(val).replace(',','.'));
+  if(isNaN(n)) return String(val).replace('.',',');
+  // Se inteiro, sem casas decimais
+  if(Number.isInteger(n)) return String(n);
+  return n.toFixed(2).replace('.',',');
+}
+
+// Formata dimensão — substitui ponto por vírgula
+function fmtDimVal(val){
+  if(!val||!val.trim()) return '—';
+  return val.trim().replace('.',',');
+}
+
 let categoriaAtiva = '';
 
 let estoqueFiltroCat = '';
@@ -575,7 +595,7 @@ function renderGrid(query=''){
       <div class="card-body">
         <div class="card-name" title="${p.nome}">${p.nome}</div>
         <div class="card-meta">${p.categoria||'—'} · ${p.codigo||'s/cód'}</div>
-        <span class="badge ${total===0?'badge-zero':'badge-ok'}">${total} ${p.unidade}</span>
+        <span class="badge ${total===0?'badge-zero':'badge-ok'}">${fmtNum(total)} ${p.unidade}</span>
       </div>
     </div>`;
   }).join('');
@@ -636,11 +656,12 @@ function renderTable(lista){
       function fmtDim(val){ return (val&&val.trim()) ? val.trim() : '—'; }
       return `<tr class="sum-row">
         <td><i class="ti ti-stack" style="margin-right:6px;font-size:12px"></i>${p.nome}${g.itens.length>1?` <span style="font-size:11px;color:rgba(0,100,0,.6)">(${g.itens.length} itens)</span>`:''}</td>
-        <td class="col-dim">${fmtDim(p.comprimento)}</td>
-        <td class="col-dim">${fmtDim(p.largura)}</td>
-        <td class="col-dim">${fmtDim(p.altura)}</td>
-        <td class="col-dim">${fmtDim(p.espessura)}</td>
-        <td class="col-dim">${fmtDim(p.lateral)}</td>
+        <td class="col-dim">${fmtDimVal(p.comprimento)}</td>
+        <td class="col-dim">${fmtDimVal(p.largura)}</td>
+        <td class="col-dim">${fmtDimVal(p.diametro)}</td>
+        <td class="col-dim">${fmtDimVal(p.altura)}</td>
+        <td class="col-dim">${fmtDimVal(p.espessura)}</td>
+        <td class="col-dim">${fmtDimVal(p.lateral)}</td>
         <td>${p.unidade||'—'}</td>
         <td style="font-weight:700;color:#5A8A2C">${g.totalQtd}</td>
         <td style="font-weight:700;color:#5A8A2C">${somaMetrosGrupo}</td>
@@ -651,11 +672,12 @@ function renderTable(lista){
         const metrosItem = isMetrico ? ((!isNaN(compItem)&&compItem>0) ? (compItem*qtdItem).toFixed(2)+' '+item.unidade : qtdItem+' '+item.unidade) : '—';
         return `<tr style="background:#f9fdf9;cursor:pointer" onclick="abrirModal('${item.id}')">
           <td style="padding-left:20px;color:#888;font-size:12px">↳ ${item.nome}</td>
-          <td class="col-dim" style="font-size:12px">${fmtDim(item.comprimento)}</td>
-          <td class="col-dim" style="font-size:12px">${fmtDim(item.largura)}</td>
-          <td class="col-dim" style="font-size:12px">${fmtDim(item.altura)}</td>
-          <td class="col-dim" style="font-size:12px">${fmtDim(item.espessura)}</td>
-          <td class="col-dim" style="font-size:12px">${fmtDim(item.lateral)}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDimVal(item.comprimento)}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDimVal(item.largura)}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDimVal(item.diametro)}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDimVal(item.altura)}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDimVal(item.espessura)}</td>
+          <td class="col-dim" style="font-size:12px">${fmtDimVal(item.lateral)}</td>
           <td style="font-size:12px">${item.unidade||'—'}</td>
           <td style="font-size:12px">${qtdItem}</td>
           <td style="font-size:12px;color:#5A8A2C">${metrosItem}</td>
@@ -670,11 +692,12 @@ function renderTable(lista){
     const metrosP = isMetrico2 ? ((!isNaN(compNum)&&compNum>0) ? (compNum*qtdP).toFixed(2)+' '+p.unidade : qtdP+' '+p.unidade) : '—';
     return `<tr onclick="abrirModal('${p.id}')" style="cursor:pointer">
       <td>${p.nome}</td>
-      <td class="col-dim">${p.comprimento||'—'}</td>
-      <td class="col-dim">${p.largura||'—'}</td>
-      <td class="col-dim">${p.altura||'—'}</td>
-      <td class="col-dim">${p.espessura||'—'}</td>
-      <td class="col-dim">${p.lateral||'—'}</td>
+      <td class="col-dim">${fmtDimVal(p.comprimento)}</td>
+      <td class="col-dim">${fmtDimVal(p.largura)}</td>
+      <td class="col-dim">${fmtDimVal(p.diametro)}</td>
+      <td class="col-dim">${fmtDimVal(p.altura)}</td>
+      <td class="col-dim">${fmtDimVal(p.espessura)}</td>
+      <td class="col-dim">${fmtDimVal(p.lateral)}</td>
       <td>${p.unidade||'—'}</td>
       <td style="font-weight:600;color:${qtdP>0?'#5A8A2C':'#C8102E'}">${qtdP}</td>
       <td style="color:#5A8A2C;font-size:12px">${metrosP}</td>
@@ -690,7 +713,7 @@ function renderTable(lista){
         <thead>
           <tr>
             <th rowspan="2" class="col-produto">Produto</th>
-            <th colspan="5" style="text-align:center;border-bottom:1px solid #ddd">Dimensões</th>
+            <th colspan="6" style="text-align:center;border-bottom:1px solid #ddd">Dimensões</th>
             <th rowspan="2" class="col-num">Unid.</th>
             <th rowspan="2" class="col-num">Qtd</th>
             <th rowspan="2" class="col-num">Total m</th>
@@ -698,7 +721,8 @@ function renderTable(lista){
           </tr>
           <tr>
             <th class="col-dim">Compr.</th>
-            <th class="col-dim">Larg./Ø</th>
+            <th class="col-dim">Largura</th>
+            <th class="col-dim">Diâmetro</th>
             <th class="col-dim">Altura</th>
             <th class="col-dim">Espes.</th>
             <th class="col-dim">Lateral</th>
@@ -722,11 +746,37 @@ function renderTable(lista){
 }
 
 // Exportar Excel com os dados filtrados
-window.exportarExcel = function(){
+window.exportarExcel = async function(){
   const lista = getFiltroLista();
   if(!lista.length){notify('Nenhum produto para exportar');return;}
+  notify('Gerando planilha...');
 
-  // Agrupar igual à tabela
+  // ── Cores ──────────────────────────────────────────────────────────────────
+  const C = {
+    red:     {argb:'FFC8102E'}, redLight: {argb:'FFFBE8EB'},
+    green:   {argb:'FF5A8A2C'}, greenL:   {argb:'FF8DC63F'},
+    greenBg: {argb:'FFE8F4DE'}, greenBg2: {argb:'FFD8EDCA'},
+    gray:    {argb:'FF3F3F3F'}, white:    {argb:'FFFFFFFF'},
+    light:   {argb:'FFF5F5F5'}, light2:   {argb:'FFFAFAFA'},
+    yellow:  {argb:'FFFFF3CD'}, yellowTxt:{argb:'FF856404'},
+    grupoBg: {argb:'FFFFE8EA'}, grupoTxt: {argb:'FF8B1A1A'},
+    border:  {argb:'FFCCCCCC'},
+  };
+
+  const bThin  = {style:'thin',  color:C.border};
+  const bMed   = {style:'medium',color:{argb:'FFAAAAAA'}};
+  const allThin = {top:bThin,bottom:bThin,left:bThin,right:bThin};
+  const allMed  = {top:bMed, bottom:bMed, left:bMed, right:bMed};
+
+  function applyStyle(cell, bg, fontClr, bold, sz, hAlign, bord, wrap, italic, numFmt){
+    cell.fill   = {type:'pattern',pattern:'solid',fgColor:bg||C.white};
+    cell.font   = {name:'Arial',size:sz||10,bold:!!bold,italic:!!italic,color:fontClr||C.gray};
+    cell.alignment = {horizontal:hAlign||'left',vertical:'middle',wrapText:!!wrap};
+    cell.border = bord||allThin;
+    if(numFmt) cell.numFmt = numFmt;
+  }
+
+  // ── Agrupar ────────────────────────────────────────────────────────────────
   const grupos = {};
   lista.forEach(p=>{
     const chave = chaveAgrupamento(p);
@@ -735,55 +785,226 @@ window.exportarExcel = function(){
     grupos[chave].totalQtd+=getTotalQtd(p);
   });
 
-  // Unidades de medida linear/área/volume
   const unidadesMetricas = ['m','m²','m³','ml'];
 
-  function calcMetros(p){
-    const unid = (p.unidade||'').toLowerCase();
-    if(!unidadesMetricas.includes(unid)) return null;
-    // Tenta extrair comprimento numérico
-    const comp = parseFloat((p.comprimento||'').replace(',','.'));
-    const qtd = getTotalQtd(p);
-    if(!isNaN(comp) && comp > 0) return (comp * qtd).toFixed(2) + ' ' + unid;
-    return qtd + ' ' + unid; // se não tiver comprimento, usa qtd direta
+  function splitDim(str){
+    if(!str||!str.trim()) return [null,''];
+    const s = str.trim().replace(',','.');
+    const m = s.match(/^([0-9]+\.?[0-9]*)\s*([a-zA-Z²³"'\/]*)$/);
+    if(m){
+      const num = parseFloat(m[1]);
+      return [Number.isInteger(num)?num:parseFloat(num.toFixed(3)), m[2]||''];
+    }
+    return [null, str.trim()];
   }
 
-  const rows = [['Produto','Código','Categoria','Comprimento','Largura/Diâmetro','Altura','Espessura','Lateral','Unidade','Qtd Total','Total em Metros','Estoques','Obs']];
-  
-  Object.values(grupos).sort((a,b)=>(a.p.categoria||'').localeCompare(b.p.categoria||'')).forEach(g=>{
-    if(g.itens.length>1){
-      // Soma metros do grupo
-      const somaMetros = unidadesMetricas.includes((g.p.unidade||'').toLowerCase())
-        ? g.itens.reduce((acc,p)=>{
-            const comp = parseFloat((p.comprimento||'').replace(',','.'));
-            const qtd = getTotalQtd(p);
-            return acc + (!isNaN(comp)&&comp>0 ? comp*qtd : qtd);
-          }, 0).toFixed(2) + ' ' + g.p.unidade
-        : '—';
-      rows.push([
-        `[SOMA] ${g.p.nome} (${g.itens.length} itens)`,'','',
-        g.p.comprimento||'',g.p.largura||'',g.p.altura||'',g.p.espessura||'',g.p.lateral||'',
-        g.p.unidade, g.totalQtd, somaMetros, 'TOTAL AGRUPADO', ''
-      ]);
+  function calcMetros(p){
+    if(!unidadesMetricas.includes((p.unidade||'').toLowerCase())) return null;
+    const [cv] = splitDim(p.comprimento);
+    const qtd = getTotalQtd(p);
+    if(cv&&!isNaN(cv)&&cv>0) return parseFloat((cv*qtd).toFixed(3));
+    return qtd;
+  }
+
+  // ── ExcelJS workbook ────────────────────────────────────────────────────────
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Catálogo FC';
+  const ws = wb.addWorksheet('Catálogo',{views:[{state:'frozen',ySplit:3}]});
+
+  // Colunas
+  ws.columns = [
+    {key:'grupo',  width:14},
+    {key:'nome',   width:42},
+    {key:'cod',    width:13},
+    {key:'cat',    width:36},
+    {key:'cv',     width:12},{key:'cu', width:8},
+    {key:'lv',     width:12},{key:'lu', width:8},
+    {key:'dv',     width:12},{key:'du', width:8},
+    {key:'av',     width:12},{key:'au', width:8},
+    {key:'ev',     width:12},{key:'eu', width:8},
+    {key:'latv',   width:12},{key:'latu',width:8},
+    {key:'unid',   width:10},
+    {key:'qtd',    width:11},
+    {key:'metros', width:13},
+    {key:'estoq',  width:42},
+    {key:'obs',    width:32},
+  ];
+
+  const numCols = ws.columns.length;
+  const DATA_START = 4; // linha onde começa os dados (1-based)
+
+  // ── LINHA 1: Título ────────────────────────────────────────────────────────
+  ws.mergeCells(1,1,1,numCols);
+  const titRow = ws.getRow(1);
+  titRow.height = 28;
+  const titCell = ws.getCell(1,1);
+  titCell.value = `CATÁLOGO DE MATERIAIS — SOBRAS DE OBRAS   |   Ferreira Costa   |   ${new Date().toLocaleDateString('pt-BR')}`;
+  applyStyle(titCell,C.red,C.white,true,13,'center',allMed,false);
+  // Células mescladas precisam de fill também
+  for(let c=2;c<=numCols;c++){
+    const mc = ws.getCell(1,c);
+    mc.fill={type:'pattern',pattern:'solid',fgColor:C.red};
+    mc.border=allMed;
+  }
+
+  // ── LINHA 2: Subtotais ─────────────────────────────────────────────────────
+  const subRow = ws.getRow(2);
+  subRow.height = 20;
+  // Colunas de valor de dimensão: 5,7,9,11,13,15 (1-based) + qtd=18 + metros=19
+  const valCols = [5,7,9,11,13,15,18,19];
+  for(let c=1;c<=numCols;c++){
+    const cell = ws.getCell(2,c);
+    const isVal = valCols.includes(c);
+    const isLbl = c===1;
+    if(isLbl){
+      cell.value = 'SUBTOTAL (itens filtrados)';
+    } else if(isVal){
+      // Fórmula SUBTOTAL com ponto e vírgula
+      const colLtr = ws.getColumn(c).letter;
+      cell.value = {formula:`SUBTOTAL(9,${colLtr}${DATA_START}:${colLtr}5000)`};
+      cell.numFmt = '#,##0.###';
     }
-    g.itens.forEach(p=>{
-      const estoqueStr = Object.entries(p.estoques||{}).filter(([,q])=>q>0).map(([loc,q])=>`${loc}: ${q}`).join(' | ');
-      const metros = calcMetros(p) || '—';
-      rows.push([
-        p.nome, p.codigo||'', p.categoria||'',
-        p.comprimento||'', p.largura||'', p.altura||'', p.espessura||'', p.lateral||'',
-        p.unidade, getTotalQtd(p), metros, estoqueStr, p.obs||''
-      ]);
-    });
+    applyStyle(cell, C.yellow,
+      isVal||isLbl ? C.yellowTxt : C.gray,
+      isVal||isLbl, 10,
+      isVal?'center':'left', allThin, false);
+  }
+
+  // ── LINHA 3: Cabeçalhos ────────────────────────────────────────────────────
+  const headers = [
+    'Grupo','Produto','Código','Categoria',
+    'Compr. Valor','Compr. Unid',
+    'Larg. Valor','Larg. Unid',
+    'Diâm. Valor','Diâm. Unid',
+    'Alt. Valor','Alt. Unid',
+    'Espes. Valor','Espes. Unid',
+    'Lat. Valor','Lat. Unid',
+    'Unidade','Qtd Total','Total Metros',
+    'Estoques','Obs'
+  ];
+  const hdRow = ws.getRow(3);
+  hdRow.height = 22;
+  headers.forEach((h,i)=>{
+    const c = i+1;
+    const cell = ws.getCell(3,c);
+    cell.value = h;
+    const isDimVal  = c>=5&&c<=16&&(c%2===1); // 5,7,9,11,13,15
+    const isDimUnid = c>=5&&c<=16&&(c%2===0); // 6,8,10,12,14,16
+    const isNum     = c>=17;
+    const bg = isDimVal ? C.green : isDimUnid ? C.greenL : isNum ? C.gray : C.red;
+    applyStyle(cell, bg, C.white, true, 9, 'center', allMed, true);
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{wch:40},{wch:12},{wch:35},{wch:14},{wch:16},{wch:10},{wch:12},{wch:10},{wch:8},{wch:10},{wch:16},{wch:40},{wch:30}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Catálogo');
-  const data = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
-  XLSX.writeFile(wb, `catalogo_${data}.xlsx`);
-  notify('Excel exportado!');
+  // ── Autofilter ─────────────────────────────────────────────────────────────
+  ws.autoFilter = {from:{row:3,column:1}, to:{row:3,column:numCols}};
+
+  // ── LINHAS DE DADOS ────────────────────────────────────────────────────────
+  let rowIdx = DATA_START;
+
+  Object.values(grupos)
+    .sort((a,b)=>(a.p.categoria||'').localeCompare(b.p.categoria||''))
+    .forEach(g=>{
+      const isGrupo = g.itens.length > 1;
+      const p0 = g.p;
+
+      if(isGrupo){
+        // Linha de soma do grupo
+        const isMetrico = unidadesMetricas.includes((p0.unidade||'').toLowerCase());
+        const somaMetros = isMetrico
+          ? parseFloat(g.itens.reduce((acc,p)=>{
+              const [cv2]=splitDim(p.comprimento);
+              const q2=getTotalQtd(p);
+              return acc+(cv2&&cv2>0?cv2*q2:q2);
+            },0).toFixed(3))
+          : null;
+
+        const [cv,cu]=splitDim(p0.comprimento);
+        const [lv,lu]=splitDim(p0.largura);
+        const [dv,du]=splitDim(p0.diametro);
+        const [av,au]=splitDim(p0.altura);
+        const [ev,eu]=splitDim(p0.espessura);
+        const [latv,latu]=splitDim(p0.lateral);
+
+        const row = ws.getRow(rowIdx++);
+        row.height = 18;
+        const vals = [
+          `[SOMA] ${g.itens.length} itens`, p0.nome,'',p0.categoria||'',
+          cv,cu,lv,lu,dv,du,av,au,ev,eu,latv,latu,
+          p0.unidade, g.totalQtd, somaMetros,
+          'TOTAL AGRUPADO',''
+        ];
+        vals.forEach((v,i)=>{
+          const c=i+1;
+          const cell=row.getCell(c);
+          cell.value = v??'';
+          const isDimVal  = c>=5&&c<=16&&(c%2===1);
+          const isDimUnid = c>=5&&c<=16&&(c%2===0);
+          const isNum = c===18||c===19;
+          const bg = isDimVal ? {argb:'FFFDE8EA'} : isDimUnid ? {argb:'FFFDE8EA'} : C.grupoBg;
+          applyStyle(cell, bg, C.grupoTxt, true, 10,
+            isNum?'center': isDimVal?'right': isDimUnid?'left':'left',
+            allThin, c<=3);
+          if(typeof v==='number'&&isNum) cell.numFmt='#,##0.###';
+          if(typeof v==='number'&&isDimVal) cell.numFmt='#,##0.###';
+          if(c===18) cell.numFmt='#,##0';
+        });
+      }
+
+      // Linhas de item
+      g.itens.forEach((p,pi)=>{
+        const estoqueStr=Object.entries(p.estoques||{}).filter(([,q])=>q>0).map(([loc,q])=>`${loc}: ${q}`).join(' | ');
+        const [cv,cu]=splitDim(p.comprimento);
+        const [lv,lu]=splitDim(p.largura);
+        const [dv,du]=splitDim(p.diametro);
+        const [av,au]=splitDim(p.altura);
+        const [ev,eu]=splitDim(p.espessura);
+        const [latv,latu]=splitDim(p.lateral);
+        const metros=calcMetros(p);
+        const isEven=(rowIdx%2===0);
+
+        const row=ws.getRow(rowIdx++);
+        row.height=isGrupo?14:16;
+        const vals=[
+          isGrupo?`↳ sub ${pi+1}`:'',
+          p.nome, p.codigo||'', p.categoria||'',
+          cv,cu,lv,lu,dv,du,av,au,ev,eu,latv,latu,
+          p.unidade, getTotalQtd(p), metros??'',
+          estoqueStr, p.obs||''
+        ];
+        vals.forEach((v,i)=>{
+          const c=i+1;
+          const cell=row.getCell(c);
+          cell.value = v??'';
+          const isDimVal  = c>=5&&c<=16&&(c%2===1);
+          const isDimUnid = c>=5&&c<=16&&(c%2===0);
+          const isNum     = c===18||c===19;
+          const bg = isDimVal
+            ? (isEven ? C.greenBg : C.greenBg2)
+            : isDimUnid
+            ? (isEven ? {argb:'FFE8F4DE'} : {argb:'FFD8EDCA'})
+            : (isEven ? C.white : C.light);
+          applyStyle(cell, bg,
+            isGrupo?{argb:'FF555555'}:C.gray,
+            false, isGrupo?9:10,
+            isNum?'center': isDimVal?'right': isDimUnid?'left':'left',
+            allThin, c<=3&&!isGrupo, isGrupo);
+          if(typeof v==='number'&&isDimVal) cell.numFmt='#,##0.###';
+          if(c===18) cell.numFmt='#,##0';
+          if(c===19&&typeof v==='number') cell.numFmt='#,##0.###';
+        });
+      });
+    });
+
+  // ── Download ───────────────────────────────────────────────────────────────
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `catalogo_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`;
+  a.click();
+  URL.revokeObjectURL(url);
+  notify('Excel exportado com formatação completa!');
 }
 
 window.handleSearch = function(){
@@ -845,13 +1066,14 @@ window.abrirModal = function(id){
   const p = produtos.find(x=>x.id===id);
   if(!p) return;
   const total = getTotalQtd(p);
-  const estoqueRows = Object.entries(p.estoques||{}).map(([loc,qtd])=>`<tr><td>${loc}</td><td style="font-weight:500;color:${qtd>0?'#2d7a3a':'#c0392b'}">${qtd} ${p.unidade}</td></tr>`).join('');
+  const estoqueRows = Object.entries(p.estoques||{}).map(([loc,qtd])=>`<tr><td>${loc}</td><td style="font-weight:500;color:${qtd>0?'#5A8A2C':'#C8102E'}">${fmtNum(qtd)} ${p.unidade}</td></tr>`).join('');
   const dims = [
-    p.comprimento&&`Comprimento:${p.comprimento}`,
-    p.largura&&`Largura/Diâmetro:${p.largura}`,
-    p.altura&&`Altura:${p.altura}`,
-    p.espessura&&`Espessura:${p.espessura}`,
-    p.lateral&&`Lateral:${p.lateral}`
+    p.comprimento&&`Comprimento:${fmtDimVal(p.comprimento)}`,
+    p.largura&&`Largura:${fmtDimVal(p.largura)}`,
+    p.diametro&&`Diâmetro:${fmtDimVal(p.diametro)}`,
+    p.altura&&`Altura:${fmtDimVal(p.altura)}`,
+    p.espessura&&`Espessura:${fmtDimVal(p.espessura)}`,
+    p.lateral&&`Lateral:${fmtDimVal(p.lateral)}`
   ].filter(Boolean);
   document.getElementById('modal').innerHTML=`
     <div class="modal-header">
@@ -867,7 +1089,7 @@ window.abrirModal = function(id){
         <div class="info-row"><span>Categoria</span><span>${p.categoria||'—'}</span></div>
         ${dims.map(d=>`<div class="info-row"><span>${d.split(':')[0]}</span><span>${d.split(':')[1]}</span></div>`).join('')}
         <div class="info-row"><span>Unidade</span><span>${p.unidade}</span></div>
-        <div class="info-row"><span>Total em estoque</span><span style="color:${total>0?'#5A8A2C':'#C8102E'}">${total} ${p.unidade}</span></div>
+        <div class="info-row"><span>Total em estoque</span><span style="color:${total>0?'#5A8A2C':'#C8102E'}">${fmtNum(total)} ${p.unidade}</span></div>
       </div>
     </div>
     ${p.obs?`<div class="obs-box"><i class="ti ti-notes" style="margin-right:6px"></i>${p.obs}</div>`:''}
@@ -963,6 +1185,21 @@ window.abrirEdicao = function(id){
       </div>
     </div>
 
+    <!-- SEÇÃO 3: Quantidades por estoque -->
+    <div style="${secStyle}">
+      <p style="${secTitle}"><i class="ti ti-building-warehouse" style="margin-right:4px"></i>Quantidades por estoque</p>
+      <div id="e-estoques-list">
+        ${Object.entries(p.estoques||{}).map(([loc,qtd])=>`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="flex:1;font-size:13px;color:#3F3F3F;font-weight:500">${loc}</span>
+            <input type="number" id="e-qtd-${loc.replace(/[^a-zA-Z0-9]/g,'_')}" value="${qtd}" min="0"
+              style="width:100px;padding:7px 10px;font-size:14px;border:1px solid #ddd;border-radius:8px;outline:none;text-align:right">
+            <span style="font-size:13px;color:#888">${p.unidade||'un'}</span>
+          </div>`).join('')}
+        ${Object.keys(p.estoques||{}).length===0?'<p style="font-size:13px;color:#aaa">Nenhum estoque cadastrado para este produto.</p>':''}
+      </div>
+    </div>
+
     <!-- SEÇÃO 2: Dimensões -->
     <div style="${secStyle}">
       <p style="${secTitle}"><i class="ti ti-ruler" style="margin-right:4px"></i>Dimensões <span style="font-weight:400;text-transform:none;font-size:11px">(valor + unidade)</span></p>
@@ -994,6 +1231,15 @@ window.salvarEdicao = async function(id){
   }
   setSyncStatus('syncing');
   try{
+    // Coleta quantidades por estoque
+    const p = produtos.find(x=>x.id===id);
+    const novosEstoques = {};
+    Object.keys(p?.estoques||{}).forEach(loc=>{
+      const inputId = 'e-qtd-'+loc.replace(/[^a-zA-Z0-9]/g,'_');
+      const el = document.getElementById(inputId);
+      if(el) novosEstoques[loc] = parseInt(el.value)||0;
+    });
+
     await updateDoc(doc(db,'produtos',id),{
       nome,
       codigo:    document.getElementById('e-cod').value.trim(),
@@ -1006,6 +1252,7 @@ window.salvarEdicao = async function(id){
       altura:      combinar('e-alt-val','e-alt-unid'),
       espessura:   combinar('e-esp-val','e-esp-unid'),
       lateral:     combinar('e-lat-val','e-lat-unid'),
+      estoques:    novosEstoques,
     });
     notify('Produto atualizado!');
     setTimeout(()=>abrirModal(id), 300);
@@ -1189,6 +1436,8 @@ window.cadastrarProduto = async function(){
       categoria:document.getElementById('f-cat').value.trim(),
       comprimento:document.getElementById('f-comp').value.trim(),
       largura:document.getElementById('f-larg').value.trim(),
+      diametro:document.getElementById('f-diam').value.trim(),
+      altura:document.getElementById('f-alt').value.trim(),
       espessura:document.getElementById('f-esp').value.trim(),
       unidade:document.getElementById('f-unid').value,
       obs:document.getElementById('f-obs').value.trim(),
@@ -1196,7 +1445,7 @@ window.cadastrarProduto = async function(){
       estoques:estoqueObj,
       criadoEm:serverTimestamp()
     });
-    ['f-nome','f-cod','f-cat','f-comp','f-larg','f-esp','f-obs'].forEach(id=>document.getElementById(id).value='');
+    ['f-nome','f-cod','f-cat','f-comp','f-larg','f-diam','f-alt','f-esp','f-obs'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('f-qtd').value='1';
     document.getElementById('foto-preview').style.display='none';
     document.getElementById('foto-label').textContent='Clique para selecionar foto';
@@ -1868,17 +2117,52 @@ window.analisarDuplicatas = function(){
   document.getElementById('dupProgress').style.display='block';
   document.getElementById('dupProgressFill').style.width='50%';
 
-  // Agrupa por nome normalizado (trim + lowercase)
+  // Agrupa por nome + dimensões + mesmo estoque
+  // Dois produtos são duplicatas APENAS se têm mesmo nome, mesmas dimensões
+  // E possuem quantidade > 0 no MESMO estoque
   const grupos = {};
   produtos.forEach(p=>{
-    const chave = (p.nome||'').trim().toLowerCase();
-    if(!grupos[chave]) grupos[chave]=[];
-    grupos[chave].push(p);
+    const nomeNorm = (p.nome||'').trim().toLowerCase();
+    const dims = [
+      p.comprimento||'', p.largura||'', p.altura||'',
+      p.espessura||'', p.lateral||'', p.diametro||''
+    ].map(d=>d.trim().toLowerCase()).join('|');
+
+    // Para cada estoque onde este produto tem quantidade > 0,
+    // cria uma chave nome+dims+estoque
+    const estocsComQtd = Object.entries(p.estoques||{})
+      .filter(([,q])=>q>0)
+      .map(([loc])=>loc);
+
+    if(estocsComQtd.length===0){
+      // Produto sem estoque — agrupa só por nome+dims
+      const chave = nomeNorm+'||'+dims+'||SEM_ESTOQUE';
+      if(!grupos[chave]) grupos[chave]=[];
+      grupos[chave].push(p);
+    } else {
+      estocsComQtd.forEach(loc=>{
+        const chave = nomeNorm+'||'+dims+'||'+loc.trim().toLowerCase();
+        if(!grupos[chave]) grupos[chave]=[];
+        grupos[chave].push(p);
+      });
+    }
   });
 
-  gruposDuplicatas = Object.values(grupos)
-    .filter(g=>g.length>1)
-    .map(g=>({itens:g, selecionado:true}));
+  // Só considera duplicata se 2+ produtos têm a mesma chave
+  // E agrupa itens que aparecem na mesma chave
+  // Um produto pode aparecer em múltiplas chaves (múltiplos estoques)
+  // Mas só listamos grupos onde há realmente duplicata
+  const gruposVistos = new Set();
+  gruposDuplicatas = Object.entries(grupos)
+    .filter(([,itens])=>itens.length>1)
+    .map(([chave,itens])=>({chave, itens, selecionado:true}))
+    // Remove grupos que são subconjuntos já representados
+    .filter(g=>{
+      const ids = g.itens.map(p=>p.id).sort().join(',');
+      if(gruposVistos.has(ids)) return false;
+      gruposVistos.add(ids);
+      return true;
+    });
 
   document.getElementById('dupProgressFill').style.width='100%';
   btn.disabled=false;
@@ -1908,15 +2192,24 @@ function renderDuplicatasPreview(){
 
   div.innerHTML = gruposDuplicatas.map((grupo,gi)=>{
     const p0 = grupo.itens[0];
-    // Soma estoques de todos os itens do grupo
+    // Identifica o estoque em comum (parte da chave)
+    const chaveParts = (grupo.chave||'').split('||');
+    const estoqueEmComum = chaveParts[2] && chaveParts[2]!=='SEM_ESTOQUE' ? chaveParts[2] : null;
+    // Soma apenas as quantidades do estoque em comum
     const estoquesMesclados = {};
     grupo.itens.forEach(p=>{
       Object.entries(p.estoques||{}).forEach(([loc,qtd])=>{
         estoquesMesclados[loc] = (estoquesMesclados[loc]||0) + qtd;
       });
     });
-    const estoqueStr = Object.entries(estoquesMesclados).map(([loc,q])=>`${loc}: ${q}`).join(' · ');
-    const totalQtd = Object.values(estoquesMesclados).reduce((a,b)=>a+b,0);
+    // Para a mesclagem, só soma o estoque duplicado
+    const qtdMesclada = estoqueEmComum
+      ? grupo.itens.reduce((acc,p)=>acc+(p.estoques&&p.estoques[estoqueEmComum]?p.estoques[estoqueEmComum]:0),0)
+      : Object.values(estoquesMesclados).reduce((a,b)=>a+b,0);
+    const estoqueStr = estoqueEmComum
+      ? `${estoqueEmComum}: ${qtdMesclada} ${p0.unidade||''}`
+      : Object.entries(estoquesMesclados).map(([loc,q])=>`${loc}: ${q}`).join(' · ');
+    const totalQtd = qtdMesclada;
 
     return `<div class="norm-card" style="margin-bottom:10px">
       <div class="norm-card-header" style="cursor:default">
@@ -1958,31 +2251,53 @@ function renderDuplicatasPreview(){
 window.mesclarGrupo = async function(gi){
   const grupo = gruposDuplicatas[gi];
   if(!grupo) return;
-  if(!confirm(`Mesclar ${grupo.itens.length} cópias de "${grupo.itens[0].nome}"? Os duplicados serão removidos e as quantidades somadas.`)) return;
+  if(!confirm(`Mesclar ${grupo.itens.length} cópias de "${grupo.itens[0].nome}"? As quantidades serão somadas e os duplicados removidos.`)) return;
 
   setSyncStatus('syncing');
   try{
-    const p0 = grupo.itens[0]; // produto que vai ser mantido
-    // Soma todos os estoques
-    const estoquesMesclados = {};
-    grupo.itens.forEach(p=>{
-      Object.entries(p.estoques||{}).forEach(([loc,qtd])=>{
-        estoquesMesclados[loc]=(estoquesMesclados[loc]||0)+qtd;
+    const p0 = grupo.itens[0];
+    const chaveParts = (grupo.chave||'').split('||');
+    const estoqueEmComum = chaveParts[2] && chaveParts[2]!=='SEM_ESTOQUE' ? chaveParts[2] : null;
+
+    // Soma apenas o estoque duplicado no produto que vai ficar
+    const estoquesFinal = {...(p0.estoques||{})};
+    if(estoqueEmComum){
+      // Soma a quantidade do estoque em comum de todos os duplicados
+      let totalLoc = 0;
+      grupo.itens.forEach(p=>{
+        totalLoc += (p.estoques&&p.estoques[estoqueEmComum]?p.estoques[estoqueEmComum]:0);
       });
-    });
-    // Atualiza o primeiro produto com estoques somados
-    await updateDoc(doc(db,'produtos',p0.id),{estoques:estoquesMesclados});
-    // Remove os demais
+      estoquesFinal[estoqueEmComum] = totalLoc;
+    } else {
+      // Sem estoque específico — soma tudo
+      grupo.itens.forEach(p=>{
+        Object.entries(p.estoques||{}).forEach(([loc,qtd])=>{
+          estoquesFinal[loc]=(estoquesFinal[loc]||0)+qtd;
+        });
+      });
+      // Remove duplicação do próprio p0
+      Object.entries(p0.estoques||{}).forEach(([loc,qtd])=>{
+        if(estoquesFinal[loc]>qtd) estoquesFinal[loc]-=qtd; // desconta p0 que já foi somado
+      });
+      // Ressoma corretamente
+      const estoqCorrigido = {};
+      grupo.itens.forEach(p=>{
+        Object.entries(p.estoques||{}).forEach(([loc,qtd])=>{
+          estoqCorrigido[loc]=(estoqCorrigido[loc]||0)+qtd;
+        });
+      });
+      Object.assign(estoquesFinal, estoqCorrigido);
+    }
+
+    await updateDoc(doc(db,'produtos',p0.id),{estoques:estoquesFinal});
+    // Remove os demais produtos do grupo
     for(let i=1;i<grupo.itens.length;i++){
       await deleteDoc(doc(db,'produtos',grupo.itens[i].id));
     }
-    // Remove grupo da lista local
     gruposDuplicatas.splice(gi,1);
-    notify(`Grupo mesclado! ${grupo.itens.length-1} duplicata(s) removida(s).`);
+    notify(`Mesclado! ${grupo.itens.length-1} duplicata(s) removida(s).`);
     renderDuplicatasPreview();
-    // Atualiza stats
-    const totalDup = gruposDuplicatas.length;
-    if(totalDup===0){
+    if(gruposDuplicatas.length===0){
       document.getElementById('dupStats').innerHTML='<div style="color:#5A8A2C;font-size:13px"><i class="ti ti-circle-check"></i> Todas as duplicatas foram resolvidas!</div>';
       document.getElementById('btnMesclarTodas').style.display='none';
     }
@@ -2024,5 +2339,6 @@ initListeners();
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </body>
 </html>
