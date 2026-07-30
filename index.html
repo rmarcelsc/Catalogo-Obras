@@ -153,6 +153,37 @@ header p{font-size:13px;color:#666}
 .alert-success{background:#e6f4ea;color:#5A8A2C}
 .alert-error{background:#fdecea;color:#c0392b}
 .loading{text-align:center;padding:3rem;color:#aaa;grid-column:1/-1}
+/* Nomenclatura guiada */
+.nome-guide{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;color:#856404;margin-top:6px;display:none;line-height:1.6}
+.nome-guide strong{color:#C8102E;display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.nome-guide .template{font-family:monospace;font-size:13px;color:#3F3F3F;letter-spacing:.02em}
+/* Login overlay */
+.login-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;align-items:center;justify-content:center}
+.login-overlay.open{display:flex}
+.login-box{background:#fff;border-radius:16px;padding:2rem;width:min(400px,95vw);box-shadow:0 8px 40px rgba(0,0,0,.2)}
+.login-box h2{font-size:18px;font-weight:600;color:#3F3F3F;margin-bottom:1.25rem;display:flex;align-items:center;gap:8px}
+/* Carrinho */
+.cart-btn{position:fixed;bottom:1.5rem;left:1.5rem;background:#C8102E;color:#fff;border:none;border-radius:50px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(200,16,46,.35);z-index:150;display:none;align-items:center;gap:8px;transition:all .2s}
+.cart-btn:hover{background:#a50d26;transform:translateY(-1px)}
+.cart-badge{background:#fff;color:#C8102E;border-radius:20px;padding:1px 8px;font-size:12px;font-weight:700}
+.cart-panel{display:none;position:fixed;bottom:0;right:0;width:min(420px,100vw);height:100vh;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:300;flex-direction:column}
+.cart-panel.open{display:flex}
+.cart-header{background:#C8102E;color:#fff;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center}
+.cart-header h3{font-size:15px;font-weight:600;margin:0}
+.cart-body{flex:1;overflow-y:auto;padding:1rem}
+.cart-item{background:#f9f9f7;border:1px solid #e8e8e0;border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.cart-item-name{font-size:13px;font-weight:500;color:#3F3F3F;margin-bottom:6px}
+.cart-item-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px;color:#666}
+.cart-footer{padding:1rem;border-top:1px solid #e8e8e0;background:#fafaf8}
+/* Pedidos almoxarife */
+.pedido-card{background:#fff;border:1px solid #e8e8e0;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.pedido-header{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f0f0e8}
+.pedido-status{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+.status-pendente{background:#FFF3CD;color:#856404}
+.status-aprovado{background:#E8F4DE;color:#5A8A2C}
+.status-rejeitado{background:#FBE8EB;color:#C8102E}
+.user-badge{font-size:11px;padding:2px 8px;border-radius:20px;background:#f0f0f0;color:#666}
+.user-badge.almoxarife{background:#E8F4DE;color:#5A8A2C;font-weight:600}
 .loading i{font-size:28px;display:block;margin-bottom:8px;animation:spin 1s linear infinite}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @media(max-width:600px){
@@ -164,6 +195,15 @@ header p{font-size:13px;color:#666}
 </style>
 </head>
 <body>
+
+<!-- User info bar -->
+<div id="userBar" style="display:none;background:#3F3F3F;padding:6px 1.5rem;font-size:12px;color:#ccc;display:flex;align-items:center;justify-content:space-between">
+  <span id="userBarName" style="display:flex;align-items:center;gap:6px"><i class="ti ti-user"></i> <span></span></span>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span id="userBarRole" class="user-badge"></span>
+    <button onclick="fazerLogout()" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:12px"><i class="ti ti-logout"></i> Sair</button>
+  </div>
+</div>
 
 <div class="app">
   <header>
@@ -188,6 +228,8 @@ header p{font-size:13px;color:#666}
     <button onclick="showPage('estoques',this)"><i class="ti ti-building-warehouse"></i> <span>Estoques</span></button>
     <button onclick="showPage('movimentacao',this)"><i class="ti ti-transfer"></i> <span>Movimentação</span></button>
     <button onclick="showPage('normalizar',this)"><i class="ti ti-wand"></i> <span>Normalizar</span></button>
+    <button onclick="showPage('pedidos',this)" id="navPedidos" style="display:none"><i class="ti ti-clipboard-list"></i> <span>Pedidos</span></button>
+    <button onclick="showPage('meus-pedidos',this)" id="navMeusPedidos" style="display:none"><i class="ti ti-receipt"></i> <span>Meus Pedidos</span></button>
   </div>
 
   <!-- CATÁLOGO -->
@@ -240,7 +282,50 @@ header p{font-size:13px;color:#666}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
       <div>
         <p class="section-title">Cadastro manual</p>
-        <div class="form-group"><label>Nome do produto *</label><input type="text" id="f-nome" placeholder="Ex: Tubo PVC 100mm"></div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;justify-content:space-between">
+            Nome do produto *
+            <button type="button" onclick="toggleGuiaCategoria()" style="font-size:11px;padding:3px 10px;border:1px solid #C8102E;border-radius:20px;background:#fff;color:#C8102E;cursor:pointer"><i class="ti ti-book"></i> Guia de nomenclatura</button>
+          </label>
+          <div id="guia-cat-select" style="display:none;margin-bottom:8px">
+            <select onchange="aplicarTemplateNome(this.value)" style="width:100%;padding:7px 12px;border:1px solid #C8102E;border-radius:8px;font-size:13px;outline:none;background:#fff">
+              <option value="">Selecione o tipo de produto para ver a estrutura...</option>
+              <option value="CABO [TIPO] [TENSÃO] Ø[SEÇÃO]MM² [COR] [COMPLEMENTO]">CABOS — Elétrico</option>
+              <option value="CABO REDE [BLINDA] [CAT] [NORMA] [COR]">CABOS — Rede</option>
+              <option value="CABO [TIPO] [ESPECIF] [NORMA/HOMOL]">CABOS — Coaxial/Fibra/Especial</option>
+              <option value="LUMINÁRIA [TIPO FONTE] [APLICAÇÃO] [DIM] [POTÊNCIA] [TEMP.COR]">ELÉTRICA — Luminárias</option>
+              <option value="PAINEL [OU QUADRO] ELÉTRICO [TENSÃO] [TIPO]">ELÉTRICA — Painéis / Quadros</option>
+              <option value="TOMADA INDUSTRIAL [APLICAÇÃO] [POLOS] [CORRENTE]A [TENSÃO]V [IP] [COR]">ELÉTRICA — Tomadas/Interruptores</option>
+              <option value="REFLETOR LED [POTÊNCIA]W [TEMP.COR] [APLICAÇÃO]">ELÉTRICA — Refletores</option>
+              <option value="ABRAÇADEIRA [TIPO] [MATERIAL] [DIAM/BITOLA]">ELÉTRICA — Abraçadeiras/Acess.</option>
+              <option value="[PEÇA] PVC [CLASSE] DN[XX] [COR]">HIDRÁULICA — Conexões PVC</option>
+              <option value="VÁLVULA [OU REGISTRO] [TIPO] DN[XX] [MATERIAL] [PRESSÃO]">HIDRÁULICA — Válvulas/Registros</option>
+              <option value="BACIA SANITÁRIA [TIPO] [MODELO/MARCA] [COR] [ESTADO]">HIDRÁULICA — Louças/Vasos</option>
+              <option value="TORNEIRA [APLICAÇÃO] [DN/POL] [MATERIAL/ACAB]">HIDRÁULICA — Torneiras/Chuveiros</option>
+              <option value="MANGUEIRA INCÊND. [DIAM] [COMP] [TIPO]">HIDRÁULICA — Mangueiras/Incêndio</option>
+              <option value="TUBO AÇO CARBONO [ACAB] [BITOLA] [COMP]">TUBO — Aço Carbono</option>
+              <option value="TUBO INOX [NORMA/LIGA] Ø[XX]MM [COMP]">TUBO — Aço Inox</option>
+              <option value="TUBO PVC [TIPO] DN[XX] [COR] NBR[XXXX]">TUBO — PVC Esgoto/Água</option>
+              <option value="TUBO PEAD [PN] DN[XX]">TUBO — PEAD / PPR</option>
+              <option value="PERFIL [SEÇÃO W/I/U/Z/L] AÇO [MEDIDA H]X[BF]MM [COMP]">PERFIL — Aço Estrutural</option>
+              <option value="PERFIL ALUMÍNIO TIPO [H/U/T/Z/CART.] [MEDIDA] [APLICAÇÃO]">PERFIL — Alumínio</option>
+              <option value="PERFIL CARTOLA [MEDIDA H]X[LA]MM [COMP]">PERFIL — Cartola/Estrutural</option>
+              <option value="BARRA ROSCADA [MATERIAL/ACAB] [BITOLA] L=[XX]M">FERRAGEM — Barras Roscadas</option>
+              <option value="TELA AÇO SOLDADA Q-[XXX] [NORMA] [LARG]X[COMP]M">FERRAGEM — Telas de Aço</option>
+              <option value="CHUMBADOR [TIPO: J/CBA/EXP] [BITOLA] [COMP]">FERRAGEM — Chumbadores</option>
+              <option value="ESTRUTURA METÁLICA TUBULAR [APLICAÇÃO] [DIMENSÕES]">FERRAGEM — Estruturas Metálicas</option>
+              <option value="PORCELANATO [MARCA] [DIM]CM [TIPO/ACAB] [QDE PCJ/CX]">MAT. CONSTRUÇÃO — Pisos/Porcel.</option>
+              <option value="PARAFUSO [TIPO] [BITOLA]X[COMP]MM [MATERIAL/ACAB]">MAT. CONSTRUÇÃO — Parafusos/Fix.</option>
+              <option value="PLACA GESSO [TIPO: GRELHA/LISA/ST] [DIM]CM">MAT. CONSTRUÇÃO — Forro/Gesso</option>
+              <option value="TELHA [PERFIL: TRAP/ONDA] [MATERIAL: AC/AL] [COMP]X[LARG]M">TELHA / CALHA / RUFO</option>
+            </select>
+            <div class="nome-guide" id="nomeGuide">
+              <strong>Estrutura para este tipo:</strong>
+              <span class="template" id="nomeTemplate"></span>
+            </div>
+          </div>
+          <input type="text" id="f-nome" placeholder="Ex: Tubo PVC 100mm">
+        </div>
         <div class="form-row">
           <div class="form-group"><label>Código</label><input type="text" id="f-cod" placeholder="Ex: TUB-001"></div>
           <div class="form-group"><label>Categoria</label>
@@ -401,12 +486,85 @@ header p{font-size:13px;color:#666}
     </div>
   </div>
 
+  <!-- MEUS PEDIDOS -->
+  <div id="page-meus-pedidos" class="page">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <p class="section-title" style="margin:0">Meus Pedidos</p>
+      <div style="display:flex;gap:6px">
+        <button class="filter-btn active" id="mpfilt-todos" onclick="filtrarMeusPedidos('todos',this)">Todos</button>
+        <button class="filter-btn" id="mpfilt-pendente" onclick="filtrarMeusPedidos('pendente',this)">Pendentes</button>
+        <button class="filter-btn" id="mpfilt-aprovado" onclick="filtrarMeusPedidos('aprovado',this)">Aprovados</button>
+        <button class="filter-btn" id="mpfilt-rejeitado" onclick="filtrarMeusPedidos('rejeitado',this)">Rejeitados</button>
+      </div>
+    </div>
+    <div id="meusPedidosList"><p style="color:#aaa;font-size:13px;text-align:center;padding:2rem">Nenhum pedido encontrado.</p></div>
+  </div>
+
+  <!-- PEDIDOS -->
+  <div id="page-pedidos" class="page">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <p class="section-title" style="margin:0">Pedidos de Retirada</p>
+      <div style="display:flex;gap:6px">
+        <button class="filter-btn active" id="pfilt-todos" onclick="filtrarPedidos('todos',this)">Todos</button>
+        <button class="filter-btn" id="pfilt-pendente" onclick="filtrarPedidos('pendente',this)">Pendentes</button>
+        <button class="filter-btn" id="pfilt-aprovado" onclick="filtrarPedidos('aprovado',this)">Aprovados</button>
+        <button class="filter-btn" id="pfilt-rejeitado" onclick="filtrarPedidos('rejeitado',this)">Rejeitados</button>
+      </div>
+    </div>
+    <div id="pedidosList"><p style="color:#aaa;font-size:13px">Nenhum pedido encontrado.</p></div>
+  </div>
+
+
 </div>
 
 <div class="modal-bg" id="modalBg" onclick="if(event.target===this)fecharModal()">
   <div class="modal" id="modal"></div>
 </div>
 <div class="notify" id="notify"></div>
+
+<!-- Login Overlay -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <h2><i class="ti ti-lock" style="color:#C8102E"></i> Acesso ao sistema</h2>
+    <div id="loginError" style="display:none;background:#FBE8EB;color:#C8102E;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:1rem"></div>
+    <div class="form-group"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none"></div>
+    <div class="form-group"><label>Senha</label><input type="password" id="loginSenha" placeholder="••••••••" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none" onkeydown="if(event.key==='Enter')fazerLogin()"></div>
+    <button class="btn btn-primary" onclick="fazerLogin()" style="width:100%;justify-content:center;margin-top:.5rem"><i class="ti ti-login"></i> Entrar</button>
+    <p style="font-size:12px;color:#aaa;text-align:center;margin-top:1rem">Não tem conta? Solicite ao administrador.</p>
+  </div>
+</div>
+
+<!-- Botão carrinho flutuante -->
+<button class="cart-btn" id="cartBtn" onclick="toggleCart()">
+  <i class="ti ti-shopping-cart"></i>
+  Pedido de Retirada
+  <span class="cart-badge" id="cartBadge">0</span>
+</button>
+
+<!-- Painel do carrinho -->
+<div class="cart-panel" id="cartPanel">
+  <div class="cart-header">
+    <h3><i class="ti ti-shopping-cart" style="margin-right:6px"></i>Pedido de Retirada</h3>
+    <button onclick="toggleCart()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer">&times;</button>
+  </div>
+  <div class="cart-body" id="cartBody">
+    <p style="color:#aaa;font-size:13px;text-align:center;padding:2rem">Nenhum item adicionado.</p>
+  </div>
+  <div class="cart-footer">
+    <div class="form-group" style="margin-bottom:8px"><label>Solicitante</label>
+      <input type="text" id="cartSolicitante" placeholder="Seu nome" style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none">
+    </div>
+    <div class="form-group" style="margin-bottom:8px"><label>Obra / Centro de custo</label>
+      <input type="text" id="cartObra" placeholder="Ex: Obra Natal - Bloco B" style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none">
+    </div>
+    <div class="form-group" style="margin-bottom:12px"><label>Observação</label>
+      <textarea id="cartObs" rows="2" placeholder="Justificativa ou observação" style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none;font-family:inherit"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="enviarPedido()" style="width:100%;justify-content:center"><i class="ti ti-send"></i> Enviar pedido ao almoxarife</button>
+    <button class="btn" onclick="limparCarrinho()" style="width:100%;justify-content:center;margin-top:6px;font-size:12px"><i class="ti ti-trash"></i> Limpar carrinho</button>
+  </div>
+</div>
+
 <div class="photo-lightbox" id="photoLightbox" onclick="fecharLightbox()">
   <button class="photo-lightbox-close" onclick="fecharLightbox()" aria-label="Fechar">&times;</button>
   <img id="photoLightboxImg" src="" alt="Foto ampliada">
@@ -416,6 +574,7 @@ header p{font-size:13px;color:#666}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBoehjNE0wUj62IjiLI13WWKhHkrZEOmQw",
@@ -428,6 +587,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+window.app = app;
 
 // Estado em memória
 let produtos = [];
@@ -1097,6 +1257,7 @@ window.abrirModal = function(id){
     <table class="stock-table"><thead><tr><th>Local</th><th>Quantidade</th></tr></thead><tbody>${estoqueRows}</tbody></table>
     <div style="display:flex;gap:8px;margin-top:1.25rem;flex-wrap:wrap">
       <button class="btn btn-primary" onclick="abrirEdicao('${p.id}')"><i class="ti ti-pencil"></i> Editar</button>
+      <button class="btn" style="background:#5A8A2C;color:#fff;border-color:#5A8A2C" onclick="abrirReserva('${p.id}')"><i class="ti ti-shopping-cart"></i> Reservar</button>
       <button class="btn" onclick="abrirMenuFoto('${p.id}')"><i class="ti ti-camera"></i> Foto</button>
       ${p.foto?`<button class="btn" onclick="removerFotoProduto('${p.id}')"><i class="ti ti-photo-off"></i> Remover foto</button>`:''}
       <button class="btn" onclick="fecharModal();showPage('movimentacao',document.querySelectorAll('.nav button')[3])"><i class="ti ti-transfer"></i> Movimentar</button>
@@ -2333,9 +2494,469 @@ window.mesclarTodasDuplicatas = async function(){
   if(gruposDuplicatas.length===0) document.getElementById('btnMesclarTodas').style.display='none';
 }
 
+
+// ═══════════════════════════════════════════════════════════
+// AUTH — Login/Logout com Firebase Authentication
+// ═══════════════════════════════════════════════════════════
+let usuarioAtual = null;
+let perfilUsuario = null; // {nome, papel: 'almoxarife'|'usuario'}
+
+async function iniciarAuth(){
+  const auth = getAuth(app);
+  window._auth = auth;
+  window._signIn = signInWithEmailAndPassword;
+  window._signOut = signOut;
+
+  onAuthStateChanged(auth, async user => {
+    usuarioAtual = user;
+    if(user){
+      // Busca perfil no Firestore
+      try{
+        const snap = await getDoc(doc(db,'usuarios',user.uid));
+        if(snap.exists()){
+          const d = snap.data();
+          // aceita tanto 'papel' quanto 'funcao' como campo de perfil
+          perfilUsuario = {...d, papel: d.papel || d.funcao || 'usuario'};
+        } else {
+          perfilUsuario = {nome: user.email, papel:'usuario'};
+        }
+      }catch{ perfilUsuario = {nome: user.email, papel:'usuario'}; }
+
+      // Fecha overlay de login
+      document.getElementById('loginOverlay').classList.remove('open');
+
+      // Mostra barra do usuário
+      const bar = document.getElementById('userBar');
+      bar.style.display = 'flex';
+      bar.querySelector('span span').textContent = perfilUsuario.nome || user.email;
+      const roleEl = document.getElementById('userBarRole');
+      roleEl.textContent = perfilUsuario.papel === 'almoxarife' ? '🔑 Almoxarife' : '👤 Usuário';
+      if(perfilUsuario.papel === 'almoxarife') roleEl.classList.add('almoxarife');
+
+      // Mostra carrinho e meus pedidos para todos
+      document.getElementById('cartBtn').style.display = 'flex';
+      document.getElementById('navMeusPedidos').style.display = '';
+
+      // Mostra aba pedidos (todos) somente para almoxarife
+      if(perfilUsuario.papel === 'almoxarife'){
+        document.getElementById('navPedidos').style.display = '';
+      }
+
+      initListeners();
+      iniciarListenerPedidos();
+    } else {
+      // Mostra tela de login
+      document.getElementById('loginOverlay').classList.add('open');
+      document.getElementById('userBar').style.display = 'none';
+      document.getElementById('cartBtn').style.display = 'none';
+    }
+  });
+}
+
+window.fazerLogin = async function(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const senha  = document.getElementById('loginSenha').value;
+  const errEl  = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if(!email||!senha){ errEl.textContent='Preencha e-mail e senha.'; errEl.style.display='block'; return; }
+  try{
+    await window._signIn(window._auth, email, senha);
+  }catch(e){
+    errEl.textContent = e.code === 'auth/invalid-credential'
+      ? 'E-mail ou senha incorretos.'
+      : 'Erro ao entrar: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+window.fazerLogout = async function(){
+  await window._signOut(window._auth);
+  perfilUsuario = null;
+  usuarioAtual  = null;
+  document.getElementById('navPedidos').style.display = 'none';
+  document.getElementById('cartBtn').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════
+// GUIA DE NOMENCLATURA
+// ═══════════════════════════════════════════════════════════
+window.toggleGuiaCategoria = function(){
+  const el = document.getElementById('guia-cat-select');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+window.aplicarTemplateNome = function(template){
+  if(!template) return;
+  const guide = document.getElementById('nomeGuide');
+  const tmplEl = document.getElementById('nomeTemplate');
+  guide.style.display = 'block';
+  tmplEl.textContent  = template;
+  // Coloca template no campo para o usuário editar
+  const input = document.getElementById('f-nome');
+  input.value = template;
+  input.focus();
+  // Seleciona o primeiro [CAMPO] para facilitar edição
+  const first = template.indexOf('[');
+  const last  = template.indexOf(']');
+  if(first > -1 && last > -1) input.setSelectionRange(first, last+1);
+}
+
+// ═══════════════════════════════════════════════════════════
+// CARRINHO DE RESERVAS
+// ═══════════════════════════════════════════════════════════
+let carrinho = []; // [{prodId, nome, estoque, qtd, unidade}]
+
+window.toggleCart = function(){
+  document.getElementById('cartPanel').classList.toggle('open');
+}
+
+window.abrirReserva = function(id){
+  if(!usuarioAtual){ notify('Faça login para reservar materiais.'); return; }
+  const p = produtos.find(x=>x.id===id);
+  if(!p) return;
+  const estocsDisponiveis = Object.entries(p.estoques||{}).filter(([,q])=>q>0);
+  if(!estocsDisponiveis.length){ notify('Produto sem estoque disponível.'); return; }
+
+  // Mostra mini-form de reserva dentro do modal
+  const reservaDiv = document.getElementById('reservaForm');
+  if(reservaDiv) reservaDiv.remove();
+
+  const div = document.createElement('div');
+  div.id = 'reservaForm';
+  div.style.cssText = 'margin-top:1rem;padding:1rem;background:#E8F4DE;border:1px solid #8DC63F;border-radius:10px';
+  div.innerHTML = `
+    <p style="font-size:13px;font-weight:600;color:#5A8A2C;margin-bottom:.75rem"><i class="ti ti-shopping-cart"></i> Adicionar ao pedido</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <label style="font-size:11px;color:#666;font-weight:600;text-transform:uppercase">Estoque de origem</label>
+        <select id="reservaEstoque" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;margin-top:3px">
+          ${estocsDisponiveis.map(([loc,q])=>`<option value="${loc}">${loc} (${q} ${p.unidade})</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#666;font-weight:600;text-transform:uppercase">Quantidade</label>
+        <input type="number" id="reservaQtd" value="1" min="1" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;margin-top:3px">
+      </div>
+    </div>
+    <button onclick="adicionarAoCarrinho('${id}')" class="btn btn-primary" style="width:100%;justify-content:center;font-size:13px">
+      <i class="ti ti-plus"></i> Adicionar ao pedido
+    </button>`;
+  document.getElementById('modal').appendChild(div);
+}
+
+window.adicionarAoCarrinho = function(id){
+  const p = produtos.find(x=>x.id===id);
+  if(!p) return;
+  const estoque = document.getElementById('reservaEstoque').value;
+  const qtd = parseInt(document.getElementById('reservaQtd').value)||1;
+  const dispQtd = p.estoques[estoque]||0;
+  if(qtd > dispQtd){ notify(`Apenas ${dispQtd} ${p.unidade} disponíveis em ${estoque}`); return; }
+
+  // Verifica se já está no carrinho
+  const existente = carrinho.find(c=>c.prodId===id&&c.estoque===estoque);
+  if(existente){
+    existente.qtd += qtd;
+  } else {
+    carrinho.push({prodId:id, nome:p.nome, unidade:p.unidade, estoque, qtd, categoria:p.categoria||''});
+  }
+  renderCarrinho();
+  fecharModal();
+  document.getElementById('cartPanel').classList.add('open');
+  notify(`${p.nome} adicionado ao pedido!`);
+}
+
+function renderCarrinho(){
+  const badge = document.getElementById('cartBadge');
+  const body  = document.getElementById('cartBody');
+  badge.textContent = carrinho.length;
+
+  if(!carrinho.length){
+    body.innerHTML = '<p style="color:#aaa;font-size:13px;text-align:center;padding:2rem">Nenhum item adicionado.</p>';
+    return;
+  }
+
+  body.innerHTML = carrinho.map((item,i)=>`
+    <div class="cart-item">
+      <div class="cart-item-name">${item.nome}</div>
+      <div class="cart-item-row">
+        <i class="ti ti-building-warehouse" style="color:#5A8A2C"></i>
+        <span>${item.estoque}</span>
+      </div>
+      <div class="cart-item-row" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="alterarQtdCarrinho(${i},-1)" style="width:24px;height:24px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:14px">−</button>
+          <strong>${item.qtd} ${item.unidade}</strong>
+          <button onclick="alterarQtdCarrinho(${i},1)" style="width:24px;height:24px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:14px">+</button>
+        </div>
+        <button onclick="removerDoCarrinho(${i})" style="background:none;border:none;cursor:pointer;color:#C8102E;font-size:12px"><i class="ti ti-trash"></i> Remover</button>
+      </div>
+    </div>`).join('');
+}
+
+window.alterarQtdCarrinho = function(i, delta){
+  carrinho[i].qtd = Math.max(1, carrinho[i].qtd + delta);
+  renderCarrinho();
+}
+
+window.removerDoCarrinho = function(i){
+  carrinho.splice(i,1);
+  renderCarrinho();
+}
+
+window.limparCarrinho = function(){
+  carrinho = [];
+  renderCarrinho();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PEDIDOS — Enviar e gerenciar
+// ═══════════════════════════════════════════════════════════
+let pedidosFiltro = 'todos';
+let pedidos = [];
+
+window.enviarPedido = async function(){
+  if(!carrinho.length){ notify('Adicione itens ao pedido.'); return; }
+  const solicitante = document.getElementById('cartSolicitante').value.trim();
+  const obra        = document.getElementById('cartObra').value.trim();
+  const obs         = document.getElementById('cartObs').value.trim();
+  if(!solicitante||!obra){ notify('Preencha solicitante e obra/CC.'); return; }
+
+  setSyncStatus('syncing');
+  try{
+    await addDoc(collection(db,'pedidos'),{
+      solicitante,
+      obra,
+      obs,
+      email: usuarioAtual.email,
+      uid:   usuarioAtual.uid,
+      itens: carrinho.map(c=>({...c})),
+      status: 'pendente',
+      criadoEm: serverTimestamp(),
+      dataStr: new Date().toLocaleDateString('pt-BR')
+    });
+    limparCarrinho();
+    document.getElementById('cartSolicitante').value = '';
+    document.getElementById('cartObra').value = '';
+    document.getElementById('cartObs').value  = '';
+    document.getElementById('cartPanel').classList.remove('open');
+    notify('Pedido enviado ao almoxarife!');
+    // Redireciona para Meus Pedidos
+    setTimeout(()=>{
+      showPage('meus-pedidos', document.getElementById('navMeusPedidos'));
+    }, 800);
+  }catch(e){ notify('Erro ao enviar pedido: '+e.message); }
+}
+
+function iniciarListenerPedidos(){
+  onSnapshot(collection(db,'pedidos'), snap=>{
+    pedidos = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>(b.criadoEm?.seconds||0)-(a.criadoEm?.seconds||0));
+    renderPedidos();
+    renderMeusPedidos();
+  });
+}
+
+function renderPedidos(){
+  const div = document.getElementById('pedidosList');
+  if(!div) return;
+  let lista = pedidos;
+  if(pedidosFiltro !== 'todos') lista = lista.filter(p=>p.status===pedidosFiltro);
+  // Usuário comum vê só os próprios pedidos
+  if(perfilUsuario?.papel !== 'almoxarife' && usuarioAtual){
+    lista = lista.filter(p=>p.uid===usuarioAtual.uid);
+  }
+  if(!lista.length){ div.innerHTML='<p style="color:#aaa;font-size:13px">Nenhum pedido encontrado.</p>'; return; }
+
+  div.innerHTML = lista.map(p=>{
+    const statusCls = p.status==='pendente'?'status-pendente':p.status==='aprovado'?'status-aprovado':'status-rejeitado';
+    const statusTxt = p.status==='pendente'?'⏳ Pendente':p.status==='aprovado'?'✅ Aprovado':'❌ Rejeitado';
+    const isAlmox   = perfilUsuario?.papel === 'almoxarife';
+    return `<div class="pedido-card">
+      <div class="pedido-header">
+        <div>
+          <strong style="font-size:13px">${p.solicitante}</strong>
+          <span style="font-size:11px;color:#888;margin-left:8px">${p.obra}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;color:#aaa">${p.dataStr||''}</span>
+          <span class="pedido-status ${statusCls}">${statusTxt}</span>
+        </div>
+      </div>
+      <div style="padding:10px 14px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px">
+          <thead><tr style="background:#f4f4f0"><th style="padding:5px 8px;text-align:left">Produto</th><th style="padding:5px 8px">Estoque</th><th style="padding:5px 8px">Qtd</th></tr></thead>
+          <tbody>${(p.itens||[]).map(it=>`<tr style="border-bottom:1px solid #f4f4f0"><td style="padding:5px 8px">${it.nome}</td><td style="padding:5px 8px;color:#666">${it.estoque}</td><td style="padding:5px 8px;text-align:center;font-weight:600">${it.qtd} ${it.unidade}</td></tr>`).join('')}</tbody>
+        </table>
+        ${p.obs?`<p style="font-size:12px;color:#888;margin-bottom:8px"><i class="ti ti-notes"></i> ${p.obs}</p>`:''}
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="gerarPDF('${p.id}')" class="btn" style="font-size:11px;padding:4px 10px"><i class="ti ti-file-type-pdf"></i> Gerar PDF</button>
+          ${isAlmox && p.status==='pendente' ? `
+            <button onclick="atualizarStatusPedido('${p.id}','aprovado')" class="btn" style="font-size:11px;padding:4px 10px;background:#5A8A2C;color:#fff;border-color:#5A8A2C"><i class="ti ti-check"></i> Aprovar</button>
+            <button onclick="atualizarStatusPedido('${p.id}','rejeitado')" class="btn btn-danger" style="font-size:11px;padding:4px 10px"><i class="ti ti-x"></i> Rejeitar</button>
+          `:``}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Meus Pedidos ────────────────────────────────────────────────────────────
+let meusPedidosFiltro = 'todos';
+
+function renderMeusPedidos(){
+  const div = document.getElementById('meusPedidosList');
+  if(!div||!usuarioAtual) return;
+  let lista = pedidos.filter(p=>p.uid===usuarioAtual.uid);
+  if(meusPedidosFiltro !== 'todos') lista = lista.filter(p=>p.status===meusPedidosFiltro);
+
+  if(!lista.length){
+    div.innerHTML='<div style="text-align:center;padding:3rem;color:#aaa"><i class="ti ti-receipt-off" style="font-size:36px;display:block;margin-bottom:10px"></i>Nenhum pedido encontrado.</div>';
+    return;
+  }
+
+  div.innerHTML = lista.map(p=>{
+    const statusCls = p.status==='pendente'?'status-pendente':p.status==='aprovado'?'status-aprovado':'status-rejeitado';
+    const statusTxt = p.status==='pendente'?'⏳ Pendente':p.status==='aprovado'?'✅ Aprovado':'❌ Rejeitado';
+    const statusDesc = p.status==='pendente'
+      ? 'Aguardando análise do almoxarife.'
+      : p.status==='aprovado'
+      ? 'Pedido aprovado. Retire os materiais no estoque indicado.'
+      : 'Pedido não aprovado. Entre em contato com o almoxarife.';
+
+    return `<div class="pedido-card">
+      <div class="pedido-header">
+        <div>
+          <strong style="font-size:13px">${p.obra}</strong>
+          <span style="font-size:11px;color:#888;margin-left:8px">${p.dataStr||''}</span>
+        </div>
+        <span class="pedido-status ${statusCls}">${statusTxt}</span>
+      </div>
+      <div style="padding:10px 14px">
+        <!-- Status visual -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 12px;border-radius:8px;background:${p.status==='pendente'?'#FFF9E6':p.status==='aprovado'?'#EAF4DE':'#FBE8EB'}">
+          <i class="ti ti-${p.status==='pendente'?'clock':'ti ti-'+( p.status==='aprovado'?'circle-check':'circle-x')}" style="font-size:16px;color:${p.status==='pendente'?'#856404':p.status==='aprovado'?'#5A8A2C':'#C8102E'}"></i>
+          <span style="font-size:12px;color:${p.status==='pendente'?'#856404':p.status==='aprovado'?'#5A8A2C':'#C8102E'}">${statusDesc}</span>
+        </div>
+        <!-- Itens -->
+        <p style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:6px">Itens solicitados</p>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">
+          <thead><tr style="background:#f4f4f0">
+            <th style="padding:5px 8px;text-align:left;font-weight:500;color:#666">Produto</th>
+            <th style="padding:5px 8px;font-weight:500;color:#666">Estoque</th>
+            <th style="padding:5px 8px;text-align:center;font-weight:500;color:#666">Qtd</th>
+          </tr></thead>
+          <tbody>${(p.itens||[]).map(it=>`
+            <tr style="border-bottom:1px solid #f4f4f0">
+              <td style="padding:6px 8px">${it.nome}</td>
+              <td style="padding:6px 8px;color:#666;font-size:11px">${it.estoque}</td>
+              <td style="padding:6px 8px;text-align:center;font-weight:600;color:#5A8A2C">${it.qtd} ${it.unidade}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        ${p.obs?`<p style="font-size:12px;color:#888;margin-bottom:10px"><i class="ti ti-notes"></i> ${p.obs}</p>`:''}
+        <button onclick="gerarPDF('${p.id}')" class="btn" style="font-size:11px;padding:4px 12px">
+          <i class="ti ti-file-type-pdf"></i> Ver / Imprimir pedido
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.filtrarMeusPedidos = function(filtro, btn){
+  meusPedidosFiltro = filtro;
+  document.querySelectorAll('[id^="mpfilt-"]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMeusPedidos();
+}
+
+window.filtrarPedidos = function(filtro, btn){
+  pedidosFiltro = filtro;
+  document.querySelectorAll('[id^="pfilt-"]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPedidos();
+}
+
+window.atualizarStatusPedido = async function(id, status){
+  await updateDoc(doc(db,'pedidos',id),{status, atualizadoEm:serverTimestamp()});
+  notify(status==='aprovado'?'Pedido aprovado!':'Pedido rejeitado.');
+  // Se aprovado, baixa automática dos estoques
+  if(status==='aprovado'){
+    const pedido = pedidos.find(p=>p.id===id);
+    if(pedido){
+      for(const item of pedido.itens||[]){
+        const prod = produtos.find(x=>x.id===item.prodId);
+        if(prod && prod.estoques[item.estoque]>=item.qtd){
+          const novosEstoques = {...prod.estoques};
+          novosEstoques[item.estoque] -= item.qtd;
+          await updateDoc(doc(db,'produtos',item.prodId),{estoques:novosEstoques});
+          await addDoc(collection(db,'historico'),{
+            produto:prod.nome, tipo:'baixa', origem:item.estoque, destino:'—',
+            qtd:item.qtd, unidade:item.unidade,
+            obs:`Pedido aprovado - ${pedido.solicitante} / ${pedido.obra}`,
+            timestamp:serverTimestamp(), data:new Date().toLocaleDateString('pt-BR')
+          });
+        }
+      }
+    }
+  }
+}
+
+window.gerarPDF = function(id){
+  const p = pedidos.find(x=>x.id===id);
+  if(!p) return;
+  const win = window.open('','_blank');
+  const itensHtml = (p.itens||[]).map(it=>`
+    <tr><td>${it.nome}</td><td>${it.categoria||''}</td><td>${it.estoque}</td><td style="text-align:center">${it.qtd} ${it.unidade}</td></tr>
+  `).join('');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Pedido de Retirada</title>
+    <style>
+      body{font-family:Arial,sans-serif;margin:40px;color:#333}
+      h1{color:#C8102E;font-size:20px;margin-bottom:4px}
+      .sub{color:#666;font-size:13px;margin-bottom:24px}
+      .info{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;background:#f5f5f5;padding:16px;border-radius:8px}
+      .info label{font-size:11px;color:#888;text-transform:uppercase;font-weight:600}
+      .info span{font-size:14px;font-weight:500}
+      table{width:100%;border-collapse:collapse;margin-bottom:24px}
+      th{background:#C8102E;color:#fff;padding:8px 12px;text-align:left;font-size:12px}
+      td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px}
+      tr:nth-child(even) td{background:#f9f9f9}
+      .status{display:inline-block;padding:4px 12px;border-radius:20px;font-weight:600;font-size:12px;
+        background:${p.status==='aprovado'?'#E8F4DE':p.status==='rejeitado'?'#FBE8EB':'#FFF3CD'};
+        color:${p.status==='aprovado'?'#5A8A2C':p.status==='rejeitado'?'#C8102E':'#856404'}}
+      .footer{margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+      .assinatura{border-top:1px solid #333;padding-top:8px;font-size:12px;color:#666;text-align:center}
+      @media print{button{display:none}}
+    </style></head><body>
+    <h1>Pedido de Retirada de Material</h1>
+    <p class="sub">Ferreira Costa — Controle de Materiais — Sobras de Obras</p>
+    <div class="info">
+      <div><label>Solicitante</label><br><span>${p.solicitante}</span></div>
+      <div><label>Obra / Centro de Custo</label><br><span>${p.obra}</span></div>
+      <div><label>Data</label><br><span>${p.dataStr||''}</span></div>
+      <div><label>Status</label><br><span class="status">${p.status?.toUpperCase()}</span></div>
+      ${p.obs?`<div style="grid-column:1/-1"><label>Observação</label><br><span>${p.obs}</span></div>`:''}
+    </div>
+    <table>
+      <thead><tr><th>Produto</th><th>Categoria</th><th>Estoque de Origem</th><th style="text-align:center">Quantidade</th></tr></thead>
+      <tbody>${itensHtml}</tbody>
+    </table>
+    <div class="footer">
+      <div class="assinatura">Solicitante: ${p.solicitante}</div>
+      <div class="assinatura">Almoxarife responsável</div>
+    </div>
+    <br><button onclick="window.print()" style="padding:8px 20px;background:#C8102E;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨️ Imprimir / Salvar PDF</button>
+    </body></html>`);
+  win.document.close();
+}
+
+// ═══════════════════════════════════════════════════════════
+// INICIAR AUTH (substitui initListeners na chamada inicial)
+// ═══════════════════════════════════════════════════════════
+
 // Iniciar
 setSyncStatus('syncing');
-initListeners();
+iniciarAuth();
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
