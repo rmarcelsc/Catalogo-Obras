@@ -234,12 +234,13 @@ header p{font-size:13px;color:#666}
 
   <!-- CATÁLOGO -->
   <div id="page-catalogo" class="page active">
-    <div class="search-wrap">
+    <div id="catalogoSticky" style="position:sticky;top:0;z-index:50;background:#f4f4f0;padding-bottom:8px;margin-bottom:0">
+    <div class="search-wrap" style="margin-bottom:10px">
       <i class="ti ti-search search-icon"></i>
       <input type="text" id="searchInput" placeholder="Buscar por nome, código ou categoria..." autocomplete="off" oninput="handleSearch()" onfocus="handleSearch()">
       <div class="autocomplete" id="autocomplete" style="display:none"></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center">
+    </div><!-- /search-wrap -->
+    <div style="display:flex;gap:10px;margin-bottom:0.75rem;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:6px">
         <label style="font-size:13px;color:#666;white-space:nowrap">Categoria:</label>
         <select id="selectCategoria" onchange="setCategoria(this.value)" style="padding:7px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;outline:none;cursor:pointer">
@@ -262,6 +263,7 @@ header p{font-size:13px;color:#666}
       </div>
       <button class="btn" onclick="limparFiltros()" style="font-size:12px;padding:6px 12px"><i class="ti ti-x"></i> Limpar filtros</button>
     </div>
+    </div><!-- /sticky -->
     <div style="display:flex;align-items:center;margin-bottom:.75rem;gap:8px;flex-wrap:wrap">
       <span id="resultCount" style="font-size:13px;color:#888"></span>
       <div class="view-toggle" style="margin-left:auto">
@@ -524,13 +526,86 @@ header p{font-size:13px;color:#666}
 
 <!-- Login Overlay -->
 <div class="login-overlay" id="loginOverlay">
-  <div class="login-box">
-    <h2><i class="ti ti-lock" style="color:#C8102E"></i> Acesso ao sistema</h2>
-    <div id="loginError" style="display:none;background:#FBE8EB;color:#C8102E;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:1rem"></div>
-    <div class="form-group"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none"></div>
-    <div class="form-group"><label>Senha</label><input type="password" id="loginSenha" placeholder="••••••••" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none" onkeydown="if(event.key==='Enter')fazerLogin()"></div>
-    <button class="btn btn-primary" onclick="fazerLogin()" style="width:100%;justify-content:center;margin-top:.5rem"><i class="ti ti-login"></i> Entrar</button>
-    <p style="font-size:12px;color:#aaa;text-align:center;margin-top:1rem">Não tem conta? Solicite ao administrador.</p>
+  <div class="login-box" style="width:min(440px,95vw)">
+
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="display:inline-block;background:#C8102E;color:#fff;font-weight:700;font-size:16px;padding:8px 20px;border-radius:8px;margin-bottom:8px">Ferreira Costa</div>
+      <p style="font-size:13px;color:#888;margin:0">Catálogo de Materiais — Sobras de Obras</p>
+    </div>
+
+    <!-- Abas Login / Cadastro -->
+    <div style="display:flex;border-bottom:2px solid #f0f0f0;margin-bottom:1.5rem">
+      <button id="tabLogin" onclick="mostrarTabLogin()" style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid #C8102E;margin-bottom:-2px;font-size:14px;font-weight:600;color:#C8102E;cursor:pointer">
+        <i class="ti ti-login"></i> Entrar
+      </button>
+      <button id="tabCadastro" onclick="mostrarTabCadastro()" style="flex:1;padding:8px;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-size:14px;font-weight:500;color:#aaa;cursor:pointer">
+        <i class="ti ti-user-plus"></i> Criar conta
+      </button>
+    </div>
+
+    <!-- PAINEL LOGIN -->
+    <div id="painelLogin">
+      <div id="loginError" style="display:none;background:#FBE8EB;color:#C8102E;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:1rem"></div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="loginEmail" placeholder="seu@email.com" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none">
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" id="loginSenha" placeholder="••••••••" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none" onkeydown="if(event.key==='Enter')fazerLogin()">
+      </div>
+      <button class="btn btn-primary" onclick="fazerLogin()" style="width:100%;justify-content:center;margin-top:.25rem;padding:10px">
+        <i class="ti ti-login"></i> Entrar
+      </button>
+      <p style="font-size:12px;color:#aaa;text-align:center;margin-top:1rem">
+        Não tem conta? <a onclick="mostrarTabCadastro()" style="color:#C8102E;cursor:pointer;font-weight:500">Crie uma agora</a>
+      </p>
+    </div>
+
+    <!-- PAINEL CADASTRO -->
+    <div id="painelCadastro" style="display:none">
+      <div id="cadastroError" style="display:none;background:#FBE8EB;color:#C8102E;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:1rem"></div>
+      <div id="cadastroSuccess" style="display:none;background:#E8F4DE;color:#5A8A2C;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:1rem"></div>
+      <div class="form-group">
+        <label>Nome completo *</label>
+        <input type="text" id="cadNome" placeholder="Seu nome completo" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none">
+      </div>
+      <div class="form-group">
+        <label>E-mail *</label>
+        <input type="email" id="cadEmail" placeholder="seu@email.com" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none">
+      </div>
+      <div class="form-group">
+        <label>Senha * <span style="font-size:11px;color:#aaa">(mínimo 6 caracteres)</span></label>
+        <input type="password" id="cadSenha" placeholder="••••••••" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none">
+      </div>
+      <div class="form-group">
+        <label>Tipo de acesso *</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+          <label id="opcaoUsuario" onclick="selecionarPerfil('usuario')" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:2px solid #C8102E;border-radius:8px;cursor:pointer;background:#FBE8EB">
+            <input type="radio" name="cadPerfil" value="usuario" checked style="margin-top:3px;accent-color:#C8102E">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#C8102E">👤 Usuário</div>
+              <div style="font-size:11px;color:#888;margin-top:2px">Consulta o catálogo e faz pedidos de retirada</div>
+            </div>
+          </label>
+          <label id="opcaoAlmoxarife" onclick="selecionarPerfil('almoxarife')" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:2px solid #ddd;border-radius:8px;cursor:pointer;background:#fff">
+            <input type="radio" name="cadPerfil" value="almoxarife" style="margin-top:3px;accent-color:#5A8A2C">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#3F3F3F">🔑 Almoxarife</div>
+              <div style="font-size:11px;color:#888;margin-top:2px">Gerencia estoques e aprova pedidos de retirada</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="criarConta()" style="width:100%;justify-content:center;padding:10px">
+        <i class="ti ti-user-plus"></i> Criar conta
+      </button>
+      <p style="font-size:12px;color:#aaa;text-align:center;margin-top:1rem">
+        Já tem conta? <a onclick="mostrarTabLogin()" style="color:#C8102E;cursor:pointer;font-weight:500">Entrar</a>
+      </p>
+    </div>
+
   </div>
 </div>
 
@@ -574,7 +649,7 @@ header p{font-size:13px;color:#666}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBoehjNE0wUj62IjiLI13WWKhHkrZEOmQw",
@@ -2506,6 +2581,7 @@ async function iniciarAuth(){
   window._auth = auth;
   window._signIn = signInWithEmailAndPassword;
   window._signOut = signOut;
+  window._createUser = createUserWithEmailAndPassword;
 
   onAuthStateChanged(auth, async user => {
     usuarioAtual = user;
@@ -2575,6 +2651,88 @@ window.fazerLogout = async function(){
   usuarioAtual  = null;
   document.getElementById('navPedidos').style.display = 'none';
   document.getElementById('cartBtn').style.display = 'none';
+}
+
+// ── Tabs login/cadastro ──────────────────────────────────────────────────────
+window.mostrarTabLogin = function(){
+  document.getElementById('painelLogin').style.display = '';
+  document.getElementById('painelCadastro').style.display = 'none';
+  const tl = document.getElementById('tabLogin');
+  const tc = document.getElementById('tabCadastro');
+  tl.style.borderBottomColor = '#C8102E';
+  tl.style.color = '#C8102E';
+  tl.style.fontWeight = '600';
+  tc.style.borderBottomColor = 'transparent';
+  tc.style.color = '#aaa';
+  tc.style.fontWeight = '500';
+}
+
+window.mostrarTabCadastro = function(){
+  document.getElementById('painelLogin').style.display = 'none';
+  document.getElementById('painelCadastro').style.display = '';
+  const tl = document.getElementById('tabLogin');
+  const tc = document.getElementById('tabCadastro');
+  tc.style.borderBottomColor = '#C8102E';
+  tc.style.color = '#C8102E';
+  tc.style.fontWeight = '600';
+  tl.style.borderBottomColor = 'transparent';
+  tl.style.color = '#aaa';
+  tl.style.fontWeight = '500';
+}
+
+window.selecionarPerfil = function(perfil){
+  const opcU = document.getElementById('opcaoUsuario');
+  const opcA = document.getElementById('opcaoAlmoxarife');
+  if(perfil === 'usuario'){
+    opcU.style.border = '2px solid #C8102E';
+    opcU.style.background = '#FBE8EB';
+    opcA.style.border = '2px solid #ddd';
+    opcA.style.background = '#fff';
+  } else {
+    opcA.style.border = '2px solid #5A8A2C';
+    opcA.style.background = '#E8F4DE';
+    opcU.style.border = '2px solid #ddd';
+    opcU.style.background = '#fff';
+  }
+}
+
+window.criarConta = async function(){
+  const nome   = document.getElementById('cadNome').value.trim();
+  const email  = document.getElementById('cadEmail').value.trim();
+  const senha  = document.getElementById('cadSenha').value;
+  const perfil = document.querySelector('input[name="cadPerfil"]:checked')?.value || 'usuario';
+  const errEl  = document.getElementById('cadastroError');
+  const okEl   = document.getElementById('cadastroSuccess');
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  if(!nome)  { errEl.textContent='Informe seu nome completo.'; errEl.style.display='block'; return; }
+  if(!email) { errEl.textContent='Informe um e-mail válido.';  errEl.style.display='block'; return; }
+  if(senha.length < 6){ errEl.textContent='A senha deve ter pelo menos 6 caracteres.'; errEl.style.display='block'; return; }
+
+  try{
+    const cred = await window._createUser(window._auth, email, senha);
+    // Salva perfil no Firestore
+    await setDoc(doc(db,'usuarios',cred.user.uid),{
+      nome,
+      email,
+      papel: perfil,
+      funcao: perfil,
+      criadoEm: serverTimestamp()
+    });
+    okEl.textContent = `Conta criada com sucesso! Bem-vindo(a), ${nome.split(' ')[0]}.`;
+    okEl.style.display = 'block';
+    // Limpa campos
+    ['cadNome','cadEmail','cadSenha'].forEach(id=>document.getElementById(id).value='');
+    // Login automático já acontece via onAuthStateChanged
+  }catch(e){
+    let msg = 'Erro ao criar conta.';
+    if(e.code === 'auth/email-already-in-use') msg = 'Este e-mail já está cadastrado. Faça login.';
+    else if(e.code === 'auth/invalid-email')    msg = 'E-mail inválido.';
+    else if(e.code === 'auth/weak-password')    msg = 'Senha muito fraca. Use pelo menos 6 caracteres.';
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2670,6 +2828,12 @@ function renderCarrinho(){
   const body  = document.getElementById('cartBody');
   badge.textContent = carrinho.length;
 
+  // Pré-preenche nome do solicitante se estiver logado
+  const solInput = document.getElementById('cartSolicitante');
+  if(solInput && !solInput.value && perfilUsuario?.nome){
+    solInput.value = perfilUsuario.nome;
+  }
+
   if(!carrinho.length){
     body.innerHTML = '<p style="color:#aaa;font-size:13px;text-align:center;padding:2rem">Nenhum item adicionado.</p>';
     return;
@@ -2715,11 +2879,21 @@ let pedidosFiltro = 'todos';
 let pedidos = [];
 
 window.enviarPedido = async function(){
-  if(!carrinho.length){ notify('Adicione itens ao pedido.'); return; }
+  // Verifica login
+  if(!usuarioAtual){ notify('Você precisa estar logado para enviar um pedido.'); return; }
+  if(!carrinho.length){ notify('Adicione itens ao pedido antes de enviar.'); return; }
+
   const solicitante = document.getElementById('cartSolicitante').value.trim();
   const obra        = document.getElementById('cartObra').value.trim();
   const obs         = document.getElementById('cartObs').value.trim();
-  if(!solicitante||!obra){ notify('Preencha solicitante e obra/CC.'); return; }
+
+  if(!solicitante){ notify('Informe o nome do solicitante.'); document.getElementById('cartSolicitante').focus(); return; }
+  if(!obra){ notify('Informe a obra ou centro de custo.'); document.getElementById('cartObra').focus(); return; }
+
+  // Feedback visual no botão
+  const btn = document.querySelector('#cartPanel .cart-footer .btn-primary');
+  const textoOriginal = btn ? btn.innerHTML : '';
+  if(btn){ btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Enviando...'; }
 
   setSyncStatus('syncing');
   try{
@@ -2729,22 +2903,33 @@ window.enviarPedido = async function(){
       obs,
       email: usuarioAtual.email,
       uid:   usuarioAtual.uid,
+      nome:  perfilUsuario?.nome || solicitante,
       itens: carrinho.map(c=>({...c})),
       status: 'pendente',
       criadoEm: serverTimestamp(),
       dataStr: new Date().toLocaleDateString('pt-BR')
     });
+
+    // Sucesso — limpa e fecha
     limparCarrinho();
     document.getElementById('cartSolicitante').value = '';
     document.getElementById('cartObra').value = '';
     document.getElementById('cartObs').value  = '';
     document.getElementById('cartPanel').classList.remove('open');
-    notify('Pedido enviado ao almoxarife!');
+
+    // Feedback visual de sucesso
+    notify('✅ Pedido enviado com sucesso! O almoxarife foi notificado.');
+
     // Redireciona para Meus Pedidos
     setTimeout(()=>{
       showPage('meus-pedidos', document.getElementById('navMeusPedidos'));
-    }, 800);
-  }catch(e){ notify('Erro ao enviar pedido: '+e.message); }
+    }, 600);
+
+  }catch(e){
+    console.error('Erro enviarPedido:', e);
+    notify('Erro ao enviar pedido: ' + e.message);
+    if(btn){ btn.disabled = false; btn.innerHTML = textoOriginal; }
+  }
 }
 
 function iniciarListenerPedidos(){
