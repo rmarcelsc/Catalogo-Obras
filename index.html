@@ -526,16 +526,80 @@ header p{font-size:13px;color:#666}
   <!-- BACKUP -->
   <div id="page-backup" class="page">
     <p class="section-title">Backup e Exportação de Dados</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:1.5rem" id="backupCards"></div>
+
+    <!-- Cards estáticos — botões sempre visíveis -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:1.5rem">
+
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;overflow:hidden">
+        <div style="background:#C8102E;padding:10px 14px"><span style="font-size:14px;font-weight:600;color:#fff">📦 Produtos</span></div>
+        <div style="padding:12px 14px">
+          <p id="count-produtos" style="font-size:12px;color:#888;margin-bottom:10px">—</p>
+          <div style="display:flex;gap:6px">
+            <button onclick="expJSON('produtos','Produtos')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-type-json"></i> JSON</button>
+            <button onclick="expXLS('produtos','Produtos')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;overflow:hidden">
+        <div style="background:#5A8A2C;padding:10px 14px"><span style="font-size:14px;font-weight:600;color:#fff">🏭 Estoques</span></div>
+        <div style="padding:12px 14px">
+          <p id="count-estoques" style="font-size:12px;color:#888;margin-bottom:10px">—</p>
+          <div style="display:flex;gap:6px">
+            <button onclick="expJSON('estoques','Estoques')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-type-json"></i> JSON</button>
+            <button onclick="expXLS('estoques','Estoques')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;overflow:hidden">
+        <div style="background:#3F3F3F;padding:10px 14px"><span style="font-size:14px;font-weight:600;color:#fff">🔄 Histórico</span></div>
+        <div style="padding:12px 14px">
+          <p id="count-historico" style="font-size:12px;color:#888;margin-bottom:10px">—</p>
+          <div style="display:flex;gap:6px">
+            <button onclick="expJSON('historico','Historico')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-type-json"></i> JSON</button>
+            <button onclick="expXLS('historico','Historico')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;overflow:hidden">
+        <div style="background:#856404;padding:10px 14px"><span style="font-size:14px;font-weight:600;color:#fff">📋 Pedidos</span></div>
+        <div style="padding:12px 14px">
+          <p id="count-pedidos" style="font-size:12px;color:#888;margin-bottom:10px">—</p>
+          <div style="display:flex;gap:6px">
+            <button onclick="expJSON('pedidos','Pedidos')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-type-json"></i> JSON</button>
+            <button onclick="expXLS('pedidos','Pedidos')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;overflow:hidden">
+        <div style="background:#1A3A6B;padding:10px 14px"><span style="font-size:14px;font-weight:600;color:#fff">👥 Usuários</span></div>
+        <div style="padding:12px 14px">
+          <p id="count-usuarios" style="font-size:12px;color:#888;margin-bottom:10px">—</p>
+          <div style="display:flex;gap:6px">
+            <button onclick="expJSON('usuarios','Usuarios')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-type-json"></i> JSON</button>
+            <button onclick="expXLS('usuarios','Usuarios')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Backup completo -->
     <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;padding:1.25rem;margin-bottom:1rem">
-      <p style="font-size:14px;font-weight:600;color:#3F3F3F;margin-bottom:.5rem"><i class="ti ti-database" style="margin-right:6px;color:#C8102E"></i>Backup completo do banco de dados</p>
-      <p style="font-size:13px;color:#888;margin-bottom:1rem">Exporta todas as coleções em um único arquivo JSON — ideal para backup de segurança ou migração.</p>
+      <p style="font-size:14px;font-weight:600;color:#3F3F3F;margin-bottom:.5rem">
+        <i class="ti ti-database" style="margin-right:6px;color:#C8102E"></i>Backup completo
+      </p>
+      <p style="font-size:13px;color:#888;margin-bottom:1rem">Exporta todas as coleções de uma vez.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="exportarBackupCompleto()"><i class="ti ti-file-type-json"></i> Exportar tudo (JSON)</button>
-        <button class="btn" onclick="exportarTudoExcel()"><i class="ti ti-file-spreadsheet"></i> Exportar tudo (Excel — sem fotos)</button>
+        <button class="btn btn-primary" onclick="exportarBackupCompleto()"><i class="ti ti-file-type-json"></i> Tudo em JSON</button>
+        <button class="btn" onclick="exportarTudoExcel()"><i class="ti ti-file-spreadsheet"></i> Tudo em Excel</button>
       </div>
     </div>
-    <div id="backupLog" style="display:none;background:#f4f4f0;border-radius:8px;padding:10px 14px;font-size:12px;color:#666;max-height:120px;overflow-y:auto;margin-top:.5rem"></div>
+
+    <div id="backupLog" style="display:none;background:#f4f4f0;border-radius:8px;padding:10px 14px;font-size:12px;color:#666;max-height:140px;overflow-y:auto"></div>
   </div>
 
 </div>
@@ -663,6 +727,7 @@ header p{font-size:13px;color:#666}
 </div>
 
 <!-- Firebase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -2638,9 +2703,10 @@ async function iniciarAuth(){
       document.getElementById('navMeusPedidos').style.display = '';
 
       // Mostra aba pedidos (todos) somente para almoxarife
+      // Backup visível para todos os usuários logados
+      document.getElementById('navBackup').style.display = '';
       if(perfilUsuario.papel === 'almoxarife'){
         document.getElementById('navPedidos').style.display = '';
-        document.getElementById('navBackup').style.display = '';
       }
 
       initListeners();
@@ -3202,22 +3268,7 @@ async function fetchColecao(colId){
 }
 
 window.carregarBackupCards = async function(){
-  const grid = document.getElementById('backupCards');
-  if(!grid) return;
-  grid.innerHTML = COLECOES_BACKUP.map(c => `
-    <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;overflow:hidden">
-      <div style="background:#${c.cor};padding:10px 14px">
-        <span style="font-size:14px;font-weight:600;color:#fff">${c.nome}</span>
-      </div>
-      <div style="padding:12px 14px">
-        <p id="count-${c.id}" style="font-size:12px;color:#888;margin-bottom:10px">Carregando...</p>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button onclick="window.expJSON('${c.id}','${c.nome}')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-type-json"></i> JSON</button>
-          <button onclick="window.expXLS('${c.id}','${c.nome}')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-spreadsheet"></i> Excel</button>
-        </div>
-      </div>
-    </div>`).join('');
-
+  // Cards são estáticos no HTML — só atualiza os contadores
   for(const c of COLECOES_BACKUP){
     try{
       const snap = await getDocs(collection(db, c.id));
@@ -3225,7 +3276,7 @@ window.carregarBackupCards = async function(){
       if(el) el.textContent = snap.size + ' registro(s)';
     }catch(e){
       const el = document.getElementById('count-'+c.id);
-      if(el) el.textContent = 'Sem acesso';
+      if(el) el.textContent = '—';
     }
   }
 }
@@ -3316,7 +3367,5 @@ setSyncStatus('syncing');
 iniciarAuth();
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </body>
 </html>
