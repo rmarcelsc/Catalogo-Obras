@@ -3166,16 +3166,17 @@ window.gerarPDF = function(id){
 // ═══════════════════════════════════════════════════════════
 
 
+
 // ═══════════════════════════════════════════════════════════
-// BACKUP E EXPORTAÇÃO
+// BACKUP — dentro do módulo Firebase para ter acesso a db, getDocs, collection
 // ═══════════════════════════════════════════════════════════
 
-const COLECOES = [
-  { id:'produtos',   nome:'Produtos',      icon:'ti-package',      cor:'C8102E' },
-  { id:'estoques',   nome:'Estoques',      icon:'ti-building-warehouse', cor:'5A8A2C' },
-  { id:'historico',  nome:'Histórico',     icon:'ti-history',      cor:'3F3F3F' },
-  { id:'pedidos',    nome:'Pedidos',       icon:'ti-clipboard-list',cor:'856404' },
-  { id:'usuarios',   nome:'Usuários',      icon:'ti-users',        cor:'1A3A6B' },
+const COLECOES_BACKUP = [
+  { id:'produtos',   nome:'Produtos',       cor:'C8102E' },
+  { id:'estoques',   nome:'Estoques',       cor:'5A8A2C' },
+  { id:'historico',  nome:'Histórico',      cor:'3F3F3F' },
+  { id:'pedidos',    nome:'Pedidos',        cor:'856404' },
+  { id:'usuarios',   nome:'Usuários',       cor:'1A3A6B' },
 ];
 
 function addBackupLog(msg){
@@ -3186,34 +3187,42 @@ function addBackupLog(msg){
   el.scrollTop = el.scrollHeight;
 }
 
-async function carregarBackupCards(){
+async function fetchColecao(colId){
+  const snap = await getDocs(collection(db, colId));
+  return snap.docs.map(d => {
+    const data = {...d.data()};
+    if(data.foto && data.foto.length > 500) data.foto = '[foto_omitida]';
+    // converte timestamps
+    Object.keys(data).forEach(k => {
+      if(data[k] && typeof data[k] === 'object' && data[k].seconds)
+        data[k] = new Date(data[k].seconds * 1000).toLocaleDateString('pt-BR');
+    });
+    return { id: d.id, ...data };
+  });
+}
+
+window.carregarBackupCards = async function(){
   const grid = document.getElementById('backupCards');
   if(!grid) return;
-  grid.innerHTML = COLECOES.map(c => `
+  grid.innerHTML = COLECOES_BACKUP.map(c => `
     <div style="background:#fff;border:1px solid #e8e8e0;border-radius:12px;overflow:hidden">
-      <div style="background:#${c.cor};padding:10px 14px;display:flex;align-items:center;gap:8px">
-        <i class="ti ${c.icon}" style="color:#fff;font-size:16px"></i>
+      <div style="background:#${c.cor};padding:10px 14px">
         <span style="font-size:14px;font-weight:600;color:#fff">${c.nome}</span>
       </div>
       <div style="padding:12px 14px">
-        <p style="font-size:12px;color:#888;margin-bottom:10px" id="count-${c.id}">Calculando...</p>
+        <p id="count-${c.id}" style="font-size:12px;color:#888;margin-bottom:10px">Carregando...</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button onclick="exportarColecaoJSON('${c.id}','${c.nome}')" class="btn" style="font-size:11px;padding:5px 10px">
-            <i class="ti ti-file-type-json"></i> JSON
-          </button>
-          <button onclick="exportarColecaoExcel('${c.id}','${c.nome}')" class="btn" style="font-size:11px;padding:5px 10px">
-            <i class="ti ti-file-spreadsheet"></i> Excel
-          </button>
+          <button onclick="window.expJSON('${c.id}','${c.nome}')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-type-json"></i> JSON</button>
+          <button onclick="window.expXLS('${c.id}','${c.nome}')" class="btn" style="font-size:11px;padding:5px 10px"><i class="ti ti-file-spreadsheet"></i> Excel</button>
         </div>
       </div>
     </div>`).join('');
 
-  // Conta documentos de cada coleção
-  for(const c of COLECOES){
+  for(const c of COLECOES_BACKUP){
     try{
-      const snap = await window._getDocs(window._collection(window.db, c.id));
+      const snap = await getDocs(collection(db, c.id));
       const el = document.getElementById('count-'+c.id);
-      if(el) el.textContent = `${snap.size} registro(s)`;
+      if(el) el.textContent = snap.size + ' registro(s)';
     }catch(e){
       const el = document.getElementById('count-'+c.id);
       if(el) el.textContent = 'Sem acesso';
@@ -3221,168 +3230,86 @@ async function carregarBackupCards(){
   }
 }
 
-// Busca todos os docs de uma coleção
-async function fetchColecao(colId){
-  const snap = await window._getDocs(window._collection(window.db, colId));
-  return snap.docs.map(d => {
-    const data = {...d.data()};
-    if(data.foto && data.foto.length > 500) data.foto = '[foto_base64_omitida]';
-    return { id: d.id, ...data };
-  });
-}
-
-// Exporta uma coleção como JSON
-window.exportarColecaoJSON = async function(colId, nome){
-  addBackupLog(`Exportando ${nome} (JSON)...`);
-  try{
-    const dados = await fetchColecao(colId);
-    const json = JSON.stringify({ colecao: colId, exportadoEm: new Date().toISOString(), total: dados.length, dados }, null, 2);
-    const blob = new Blob([json], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${colId}_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    addBackupLog(`✅ ${nome}: ${dados.length} registros exportados`);
-    notify(`${nome} exportado com sucesso!`);
-  }catch(e){ addBackupLog(`❌ Erro em ${nome}: ${e.message}`); notify('Erro: '+e.message); }
-}
-
-// Exporta uma coleção como Excel
-window.exportarColecaoExcel = async function(colId, nome){
-  addBackupLog(`Exportando ${nome} (Excel)...`);
-  try{
-    const dados = await fetchColecao(colId);
-    if(!dados.length){ notify('Nenhum dado para exportar.'); return; }
-
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet(nome);
-
-    // Colunas: união de todas as chaves
-    const chaves = [...new Set(dados.flatMap(d => Object.keys(d)))];
-    ws.columns = chaves.map(k => ({ header: k, key: k, width: k==='nome'||k==='produto'?35:k==='obs'||k==='observacoes'?25:15 }));
-
-    // Header
-    ws.getRow(1).eachCell(cell => {
-      cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FF1A3A6B'}};
-      cell.font = {name:'Arial',size:10,bold:true,color:{argb:'FFFFFFFF'}};
-      cell.alignment = {horizontal:'center',vertical:'middle'};
-      cell.border = {top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
-    });
-    ws.getRow(1).height = 22;
-
-    // Dados
-    dados.forEach((d, ri) => {
-      const row = ws.addRow(chaves.map(k => {
-        const v = d[k];
-        if(v === null || v === undefined) return '';
-        if(typeof v === 'object' && v.seconds) return new Date(v.seconds*1000).toLocaleDateString('pt-BR');
-        if(typeof v === 'object') return JSON.stringify(v);
-        return v;
-      }));
-      row.height = 16;
-      row.eachCell(cell => {
-        cell.font = {name:'Arial',size:10};
-        cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:ri%2===0?'FFFFFFFF':'FFF5F5F5'}};
-        cell.border = {top:{style:'thin',color:{argb:'FFEEEEEE'}},bottom:{style:'thin',color:{argb:'FFEEEEEE'}},left:{style:'thin',color:{argb:'FFEEEEEE'}},right:{style:'thin',color:{argb:'FFEEEEEE'}}};
-        cell.alignment = {vertical:'middle',wrapText:false};
-      });
-    });
-
-    ws.autoFilter = { from:{row:1,column:1}, to:{row:1,column:chaves.length} };
-    ws.views = [{state:'frozen',ySplit:1}];
-
-    const buffer = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${colId}_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`;
-    a.click();
-    URL.revokeObjectURL(url);
-    addBackupLog(`✅ ${nome}: ${dados.length} registros exportados`);
-    notify(`${nome} exportado com sucesso!`);
-  }catch(e){ addBackupLog(`❌ Erro em ${nome}: ${e.message}`); notify('Erro: '+e.message); }
-}
-
-// Backup completo em JSON (todas as coleções)
-window.exportarBackupCompleto = async function(){
-  addBackupLog('Iniciando backup completo (JSON)...');
-  const backup = { exportadoEm: new Date().toISOString(), projeto: 'catalogo-materiais-de-obras', colecoes: {} };
-  for(const c of COLECOES){
-    try{
-      addBackupLog(`  Buscando ${c.nome}...`);
-      backup.colecoes[c.id] = await fetchColecao(c.id);
-      addBackupLog(`  ✅ ${c.nome}: ${backup.colecoes[c.id].length} registros`);
-    }catch(e){ addBackupLog(`  ❌ ${c.nome}: ${e.message}`); }
-  }
-  const json = JSON.stringify(backup, null, 2);
-  const blob = new Blob([json],{type:'application/json'});
+function downloadBlob(blob, filename){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = `backup_completo_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.json`;
-  a.click();
+  a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
-  addBackupLog('✅ Backup completo exportado!');
-  notify('Backup completo exportado com sucesso!');
 }
 
-// Backup completo em Excel (abas por coleção)
+function dataHoje(){ return new Date().toLocaleDateString('pt-BR').replace(/\//g,'-'); }
+
+window.expJSON = async function(colId, nome){
+  addBackupLog('Exportando ' + nome + ' (JSON)...');
+  try{
+    const dados = await fetchColecao(colId);
+    const json = JSON.stringify({colecao:colId, exportadoEm:new Date().toISOString(), total:dados.length, dados}, null, 2);
+    downloadBlob(new Blob([json],{type:'application/json'}), colId+'_'+dataHoje()+'.json');
+    addBackupLog('✅ ' + nome + ': ' + dados.length + ' registros');
+    notify(nome + ' exportado!');
+  }catch(e){ addBackupLog('❌ Erro: '+e.message); notify('Erro: '+e.message); }
+}
+
+window.expXLS = async function(colId, nome){
+  addBackupLog('Exportando ' + nome + ' (Excel)...');
+  try{
+    const dados = await fetchColecao(colId);
+    if(!dados.length){ notify('Sem dados.'); return; }
+    const chaves = [...new Set(dados.flatMap(d => Object.keys(d)))];
+    const rows = [chaves, ...dados.map(d => chaves.map(k => {
+      const v = d[k];
+      if(v===null||v===undefined) return '';
+      if(typeof v==='object') return JSON.stringify(v);
+      return v;
+    }))];
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = chaves.map(k => ({wch: k==='nome'||k==='produto'?35:k==='obs'?25:15}));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, nome.substring(0,31));
+    XLSX.writeFile(wb, colId+'_'+dataHoje()+'.xlsx');
+    addBackupLog('✅ ' + nome + ': ' + dados.length + ' registros');
+    notify(nome + ' exportado!');
+  }catch(e){ addBackupLog('❌ Erro: '+e.message); notify('Erro: '+e.message); }
+}
+
+window.exportarBackupCompleto = async function(){
+  addBackupLog('Iniciando backup completo...');
+  const backup = { exportadoEm: new Date().toISOString(), colecoes: {} };
+  for(const c of COLECOES_BACKUP){
+    try{
+      backup.colecoes[c.id] = await fetchColecao(c.id);
+      addBackupLog('✅ ' + c.nome + ': ' + backup.colecoes[c.id].length + ' registros');
+    }catch(e){ addBackupLog('❌ ' + c.nome + ': ' + e.message); }
+  }
+  downloadBlob(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}), 'backup_completo_'+dataHoje()+'.json');
+  addBackupLog('✅ Backup completo exportado!');
+  notify('Backup completo exportado!');
+}
+
 window.exportarTudoExcel = async function(){
   addBackupLog('Gerando Excel completo...');
-  const wb = new ExcelJS.Workbook();
-  wb.creator = 'Catálogo FC';
-
-  for(const c of COLECOES){
+  const wb2 = XLSX.utils.book_new();
+  for(const c of COLECOES_BACKUP){
     try{
-      addBackupLog(`  Exportando ${c.nome}...`);
       const dados = await fetchColecao(c.id);
       if(!dados.length) continue;
-      const ws = wb.addWorksheet(c.nome);
       const chaves = [...new Set(dados.flatMap(d=>Object.keys(d)))];
-      ws.columns = chaves.map(k=>({header:k,key:k,width:k==='nome'||k==='produto'?35:15}));
-      ws.getRow(1).eachCell(cell=>{
-        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+c.cor}};
-        cell.font={name:'Arial',size:10,bold:true,color:{argb:'FFFFFFFF'}};
-        cell.alignment={horizontal:'center',vertical:'middle'};
-      });
-      ws.getRow(1).height=22;
-      dados.forEach((d,ri)=>{
-        const row=ws.addRow(chaves.map(k=>{
-          const v=d[k];
-          if(v===null||v===undefined) return '';
-          if(typeof v==='object'&&v.seconds) return new Date(v.seconds*1000).toLocaleDateString('pt-BR');
-          if(typeof v==='object') return JSON.stringify(v);
-          return v;
-        }));
-        row.height=16;
-        row.eachCell(cell=>{
-          cell.font={name:'Arial',size:10};
-          cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:ri%2===0?'FFFFFFFF':'FFF5F5F5'}};
-        });
-      });
-      ws.autoFilter={from:{row:1,column:1},to:{row:1,column:chaves.length}};
-      ws.views=[{state:'frozen',ySplit:1}];
-      addBackupLog(`  ✅ ${c.nome}: ${dados.length} registros`);
-    }catch(e){ addBackupLog(`  ❌ ${c.nome}: ${e.message}`); }
+      const rows = [chaves, ...dados.map(d => chaves.map(k => {
+        const v = d[k];
+        if(v===null||v===undefined) return '';
+        if(typeof v==='object') return JSON.stringify(v);
+        return v;
+      }))];
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = chaves.map(k=>({wch:k==='nome'?35:15}));
+      XLSX.utils.book_append_sheet(wb2, ws, c.nome.substring(0,31));
+      addBackupLog('✅ ' + c.nome + ': ' + dados.length + ' registros');
+    }catch(e){ addBackupLog('❌ ' + c.nome + ': ' + e.message); }
   }
-
-  const buffer = await wb.xlsx.writeBuffer();
-  const blob = new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `backup_completo_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`;
-  a.click();
-  URL.revokeObjectURL(url);
+  XLSX.writeFile(wb2, 'backup_completo_'+dataHoje()+'.xlsx');
   addBackupLog('✅ Excel completo exportado!');
-  notify('Excel completo exportado com sucesso!');
+  notify('Backup Excel exportado!');
 }
-
-// carregarBackupCards é chamado diretamente pelo showPage original
-
 
 // Iniciar
 setSyncStatus('syncing');
