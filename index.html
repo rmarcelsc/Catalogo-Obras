@@ -680,6 +680,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 window.app = app;
+window.db = db;
+window._getDocs = getDocs;
+window._collection = collection;
+window._doc = doc;
+window._serverTimestamp = serverTimestamp;
 
 // Estado em memória
 let produtos = [];
@@ -3206,7 +3211,7 @@ async function carregarBackupCards(){
   // Conta documentos de cada coleção
   for(const c of COLECOES){
     try{
-      const snap = await getDocs(collection(db, c.id));
+      const snap = await window._getDocs(window._collection(window.db, c.id));
       const el = document.getElementById('count-'+c.id);
       if(el) el.textContent = `${snap.size} registro(s)`;
     }catch(e){
@@ -3218,10 +3223,9 @@ async function carregarBackupCards(){
 
 // Busca todos os docs de uma coleção
 async function fetchColecao(colId){
-  const snap = await getDocs(collection(db, colId));
+  const snap = await window._getDocs(window._collection(window.db, colId));
   return snap.docs.map(d => {
     const data = {...d.data()};
-    // Remove fotos base64 pesadas do JSON (opcional — comentar para incluir)
     if(data.foto && data.foto.length > 500) data.foto = '[foto_base64_omitida]';
     return { id: d.id, ...data };
   });
