@@ -735,6 +735,7 @@ window.showPage = function(p, btn){
   document.getElementById('page-'+p).classList.add('active');
   if(btn) btn.classList.add('active');
   if(p==='movimentacao') renderMovimentacaoSelects();
+  if(p==='backup') setTimeout(carregarBackupCards, 100);
 }
 
 function getTotalQtd(p){
@@ -3376,12 +3377,7 @@ window.exportarTudoExcel = async function(){
   notify('Excel completo exportado com sucesso!');
 }
 
-// Carrega cards quando a aba backup é aberta
-const _origShowPage = window.showPage;
-window.showPage = function(p, btn){
-  _origShowPage(p, btn);
-  if(p === 'backup') carregarBackupCards();
-}
+// carregarBackupCards é chamado diretamente pelo showPage original
 
 
 // Iniciar
