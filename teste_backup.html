@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <title>Backup — Catálogo FC</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
-  body{font-family:Arial,sans-serif;padding:2rem;background:#f5f5f5;max-width:900px;margin:0 auto}
-  h2{color:#C8102E}
+  body{font-family:Arial,sans-serif;padding:2rem;background:#f5f5f5;max-width:960px;margin:0 auto}
+  h2{color:#C8102E;margin-bottom:.25rem}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:1.5rem}
   .card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden}
   .card-header{padding:10px 14px}
@@ -14,82 +15,109 @@
   .card-body{padding:12px 14px}
   .card-count{font-size:12px;color:#888;margin-bottom:10px}
   .btns{display:flex;gap:6px;flex-wrap:wrap}
-  .btn{padding:6px 12px;border-radius:6px;border:1px solid #ddd;cursor:pointer;font-size:12px;background:#fff}
+  .btn{padding:6px 12px;border-radius:6px;border:1px solid #ddd;cursor:pointer;font-size:12px;background:#fff;display:inline-flex;align-items:center;gap:4px}
   .btn:hover{background:#f5f5f5}
-  .btn-red{background:#C8102E;color:#fff;border-color:#C8102E;padding:10px 20px;font-size:14px;border-radius:8px}
-  .btn-green{background:#5A8A2C;color:#fff;border-color:#5A8A2C;padding:10px 20px;font-size:14px;border-radius:8px}
-  .btn-gray{background:#3F3F3F;color:#fff;border-color:#3F3F3F;padding:10px 20px;font-size:14px;border-radius:8px}
-  .full-section{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
-  #log{margin-top:1rem;background:#fff;border:1px solid #ddd;border-radius:8px;padding:1rem;min-height:80px;max-height:200px;overflow-y:auto;font-size:12px;color:#333}
+  .btn-primary{background:#C8102E;color:#fff;border-color:#C8102E;padding:10px 18px;font-size:13px;border-radius:8px}
+  .btn-green{background:#5A8A2C;color:#fff;border-color:#5A8A2C;padding:10px 18px;font-size:13px;border-radius:8px}
+  .btn-blue{background:#1A3A6B;color:#fff;border-color:#1A3A6B;padding:10px 18px;font-size:13px;border-radius:8px}
+  .btn-gray{background:#3F3F3F;color:#fff;border-color:#3F3F3F;padding:10px 18px;font-size:13px;border-radius:8px}
+  .section{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+  .section h3{font-size:14px;font-weight:600;color:#3F3F3F;margin-bottom:6px}
+  .section p{font-size:13px;color:#888;margin-bottom:12px}
+  #log{margin-top:1rem;background:#fff;border:1px solid #ddd;border-radius:8px;padding:1rem;
+       min-height:80px;max-height:220px;overflow-y:auto;font-size:12px;color:#333;line-height:1.6}
+  .progress-wrap{height:6px;background:#eee;border-radius:3px;margin-top:8px;display:none}
+  .progress-bar{height:6px;background:#C8102E;border-radius:3px;width:0;transition:width .3s}
+  .foto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:1rem}
+  .foto-item{border:1px solid #eee;border-radius:8px;overflow:hidden;text-align:center}
+  .foto-item img{width:100%;height:100px;object-fit:cover;display:block}
+  .foto-item p{font-size:10px;color:#666;padding:4px;word-break:break-word}
 </style>
 </head>
 <body>
 
 <h2>🗄️ Backup — Catálogo de Materiais FC</h2>
+<p style="color:#888;font-size:13px;margin-bottom:1.5rem">Exportação completa do banco de dados Firebase</p>
 
+<!-- Cards por coleção -->
 <div class="grid">
   <div class="card">
     <div class="card-header" style="background:#C8102E"><span>📦 Produtos</span></div>
     <div class="card-body">
-      <p class="card-count" id="count-produtos">—</p>
+      <p class="card-count" id="count-produtos">Carregando...</p>
       <div class="btns">
-        <button class="btn" onclick="expJSON('produtos','Produtos')">JSON</button>
-        <button class="btn" onclick="expXLS('produtos','Produtos')">Excel</button>
+        <button class="btn" onclick="expJSON('produtos','Produtos')">📄 JSON</button>
+        <button class="btn" onclick="expXLS('produtos','Produtos')">📊 Excel</button>
       </div>
     </div>
   </div>
   <div class="card">
     <div class="card-header" style="background:#5A8A2C"><span>🏭 Estoques</span></div>
     <div class="card-body">
-      <p class="card-count" id="count-estoques">—</p>
+      <p class="card-count" id="count-estoques">Carregando...</p>
       <div class="btns">
-        <button class="btn" onclick="expJSON('estoques','Estoques')">JSON</button>
-        <button class="btn" onclick="expXLS('estoques','Estoques')">Excel</button>
+        <button class="btn" onclick="expJSON('estoques','Estoques')">📄 JSON</button>
+        <button class="btn" onclick="expXLS('estoques','Estoques')">📊 Excel</button>
       </div>
     </div>
   </div>
   <div class="card">
     <div class="card-header" style="background:#3F3F3F"><span>🔄 Histórico</span></div>
     <div class="card-body">
-      <p class="card-count" id="count-historico">—</p>
+      <p class="card-count" id="count-historico">Carregando...</p>
       <div class="btns">
-        <button class="btn" onclick="expJSON('historico','Historico')">JSON</button>
-        <button class="btn" onclick="expXLS('historico','Historico')">Excel</button>
+        <button class="btn" onclick="expJSON('historico','Historico')">📄 JSON</button>
+        <button class="btn" onclick="expXLS('historico','Historico')">📊 Excel</button>
       </div>
     </div>
   </div>
   <div class="card">
     <div class="card-header" style="background:#856404"><span>📋 Pedidos</span></div>
     <div class="card-body">
-      <p class="card-count" id="count-pedidos">—</p>
+      <p class="card-count" id="count-pedidos">Carregando...</p>
       <div class="btns">
-        <button class="btn" onclick="expJSON('pedidos','Pedidos')">JSON</button>
-        <button class="btn" onclick="expXLS('pedidos','Pedidos')">Excel</button>
+        <button class="btn" onclick="expJSON('pedidos','Pedidos')">📄 JSON</button>
+        <button class="btn" onclick="expXLS('pedidos','Pedidos')">📊 Excel</button>
       </div>
     </div>
   </div>
   <div class="card">
     <div class="card-header" style="background:#1A3A6B"><span>👥 Usuários</span></div>
     <div class="card-body">
-      <p class="card-count" id="count-usuarios">—</p>
+      <p class="card-count" id="count-usuarios">Carregando...</p>
       <div class="btns">
-        <button class="btn" onclick="expJSON('usuarios','Usuarios')">JSON</button>
-        <button class="btn" onclick="expXLS('usuarios','Usuarios')">Excel</button>
+        <button class="btn" onclick="expJSON('usuarios','Usuarios')">📄 JSON</button>
+        <button class="btn" onclick="expXLS('usuarios','Usuarios')">📊 Excel</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="full-section">
-  <p style="font-size:14px;font-weight:600;color:#3F3F3F;margin-bottom:8px">🗃️ Backup completo</p>
-  <p style="font-size:13px;color:#888;margin-bottom:12px">Exporta todas as coleções de uma vez.</p>
+<!-- Fotos -->
+<div class="section">
+  <h3>📸 Fotos dos Produtos</h3>
+  <p>Extrai todas as fotos cadastradas e baixa em um arquivo ZIP. Cada imagem recebe o nome do produto.</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button class="btn-blue" onclick="exportarFotos()">📦 Baixar fotos (ZIP)</button>
+    <button class="btn" onclick="previsualizarFotos()" style="font-size:13px;padding:10px 18px">👁️ Pré-visualizar</button>
+    <span id="foto-count" style="font-size:12px;color:#888"></span>
+  </div>
+  <div class="progress-wrap" id="foto-progress"><div class="progress-bar" id="foto-bar"></div></div>
+  <div class="foto-grid" id="fotoGrid"></div>
+</div>
+
+<!-- Backup completo -->
+<div class="section">
+  <h3>🗃️ Backup completo</h3>
+  <p>Exporta todas as coleções de uma vez (sem fotos para manter o arquivo leve).</p>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <button class="btn-red" onclick="expTudoJSON()">📄 Tudo em JSON</button>
+    <button class="btn-primary" onclick="expTudoJSON()">📄 Tudo em JSON</button>
     <button class="btn-green" onclick="expTudoExcel()">📊 Tudo em Excel</button>
+    <button class="btn-gray" onclick="expTudoComFotos()">📦 Tudo + Fotos (ZIP)</button>
   </div>
 </div>
 
-<div id="log">Carregando contadores...</div>
+<div id="log">Aguarde — carregando contadores...</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -108,119 +136,216 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 const COLS = [
-  {id:'produtos',  nome:'Produtos'},
-  {id:'estoques',  nome:'Estoques'},
-  {id:'historico', nome:'Historico'},
-  {id:'pedidos',   nome:'Pedidos'},
-  {id:'usuarios',  nome:'Usuarios'},
+  {id:'produtos', nome:'Produtos'},
+  {id:'estoques', nome:'Estoques'},
+  {id:'historico',nome:'Historico'},
+  {id:'pedidos',  nome:'Pedidos'},
+  {id:'usuarios', nome:'Usuarios'},
 ];
 
+// ── Helpers ────────────────────────────────────────────────
 function log(msg){
   const el = document.getElementById('log');
-  el.innerHTML += '<p style="margin:2px 0">' + new Date().toLocaleTimeString('pt-BR') + ' — ' + msg + '</p>';
+  el.innerHTML += '<div>' + new Date().toLocaleTimeString('pt-BR') + ' — ' + msg + '</div>';
   el.scrollTop = el.scrollHeight;
 }
-
 function dataHoje(){ return new Date().toLocaleDateString('pt-BR').replace(/\//g,'-'); }
-
-function download(blob, filename){
+function download(blob, fn){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
+  a.href=url; a.download=fn; a.click();
   URL.revokeObjectURL(url);
 }
+function nomeSeguro(str){
+  return (str||'sem_nome').replace(/[^a-zA-Z0-9_\-\u00C0-\u017E ]/g,'').trim().replace(/ +/g,'_').substring(0,60);
+}
 
-async function buscar(colId){
+async function buscar(colId, manterFoto=false){
   const snap = await getDocs(collection(db, colId));
   return snap.docs.map(d => {
     const data = {...d.data()};
-    if(data.foto && data.foto.length > 100) data.foto = '[foto_omitida]';
-    Object.keys(data).forEach(k => {
+    if(!manterFoto && data.foto && data.foto.length > 100) data.foto = '[foto_omitida]';
+    Object.keys(data).forEach(k=>{
       if(data[k] && typeof data[k]==='object' && data[k].seconds)
         data[k] = new Date(data[k].seconds*1000).toLocaleDateString('pt-BR');
     });
-    return {id: d.id, ...data};
+    return {id:d.id, ...data};
   });
 }
 
 function toSheet(dados){
-  const chaves = [...new Set(dados.flatMap(d => Object.keys(d)))];
-  const rows = [chaves, ...dados.map(d => chaves.map(k => {
-    const v = d[k];
+  const chaves = [...new Set(dados.flatMap(d=>Object.keys(d)))].filter(k=>k!=='foto');
+  const rows = [chaves, ...dados.map(d=>chaves.map(k=>{
+    const v=d[k];
     if(v===null||v===undefined) return '';
     if(typeof v==='object') return JSON.stringify(v);
     return v;
   }))];
   const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = chaves.map(k=>({wch: k==='nome'?38:k==='obs'||k==='observacoes'?25:16}));
-  return {ws, chaves};
+  ws['!cols'] = chaves.map(k=>({wch:k==='nome'?38:k==='obs'||k==='observacoes'?25:16}));
+  return ws;
 }
 
-// Carrega contadores ao abrir
-(async ()=>{
+// ── Contadores ─────────────────────────────────────────────
+(async()=>{
   for(const c of COLS){
     try{
-      const snap = await getDocs(collection(db, c.id));
+      const snap = await getDocs(collection(db,c.id));
       const el = document.getElementById('count-'+c.id);
-      if(el) el.textContent = snap.size + ' registro(s)';
+      if(el) el.textContent = snap.size+' registro(s)';
+      if(c.id==='produtos'){
+        const comFoto = snap.docs.filter(d=>d.data().foto && d.data().foto.length>100).length;
+        document.getElementById('foto-count').textContent = comFoto+' produto(s) com foto';
+      }
     }catch(e){
       const el = document.getElementById('count-'+c.id);
-      if(el) el.textContent = 'Sem acesso';
+      if(el) el.textContent='Sem acesso';
     }
   }
-  log('✅ Contadores carregados. Pronto para exportar!');
+  log('✅ Contadores carregados — pronto para exportar!');
 })();
 
-window.expJSON = async function(colId, nome){
-  log('Exportando ' + nome + ' (JSON)...');
+// ── Exportações individuais ────────────────────────────────
+window.expJSON = async function(colId,nome){
+  log('Exportando '+nome+' (JSON)...');
   try{
     const dados = await buscar(colId);
-    const json = JSON.stringify({colecao:colId, exportadoEm:new Date().toISOString(), total:dados.length, dados}, null, 2);
+    const json = JSON.stringify({colecao:colId,exportadoEm:new Date().toISOString(),total:dados.length,dados},null,2);
     download(new Blob([json],{type:'application/json'}), colId+'_'+dataHoje()+'.json');
-    log('✅ ' + nome + ': ' + dados.length + ' registros exportados');
-  }catch(e){ log('❌ Erro em ' + nome + ': ' + e.message); }
+    log('✅ '+nome+': '+dados.length+' registros');
+  }catch(e){log('❌ Erro: '+e.message);}
 }
 
-window.expXLS = async function(colId, nome){
-  log('Exportando ' + nome + ' (Excel)...');
+window.expXLS = async function(colId,nome){
+  log('Exportando '+nome+' (Excel)...');
   try{
     const dados = await buscar(colId);
-    if(!dados.length){ log('⚠️ Sem dados em ' + nome); return; }
-    const {ws} = toSheet(dados);
+    if(!dados.length){log('⚠️ Sem dados em '+nome);return;}
+    const ws = toSheet(dados);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, nome.substring(0,31));
+    XLSX.utils.book_append_sheet(wb,ws,nome.substring(0,31));
     XLSX.writeFile(wb, colId+'_'+dataHoje()+'.xlsx');
-    log('✅ ' + nome + ': ' + dados.length + ' registros exportados');
-  }catch(e){ log('❌ Erro em ' + nome + ': ' + e.message); }
+    log('✅ '+nome+': '+dados.length+' registros');
+  }catch(e){log('❌ Erro: '+e.message);}
 }
 
+// ── Fotos ──────────────────────────────────────────────────
+window.previsualizarFotos = async function(){
+  log('Carregando pré-visualização das fotos...');
+  try{
+    const snap = await getDocs(collection(db,'produtos'));
+    const comFoto = snap.docs.filter(d=>d.data().foto&&d.data().foto.length>100);
+    const grid = document.getElementById('fotoGrid');
+    grid.innerHTML = comFoto.map(d=>{
+      const p=d.data();
+      return `<div class="foto-item">
+        <img src="${p.foto}" alt="${p.nome||''}" loading="lazy">
+        <p>${(p.nome||'sem nome').substring(0,40)}</p>
+      </div>`;
+    }).join('');
+    log('✅ '+comFoto.length+' fotos encontradas');
+  }catch(e){log('❌ Erro: '+e.message);}
+}
+
+window.exportarFotos = async function(){
+  log('Preparando ZIP com fotos...');
+  const prog = document.getElementById('foto-progress');
+  const bar  = document.getElementById('foto-bar');
+  prog.style.display='block'; bar.style.width='0%';
+  try{
+    const snap = await getDocs(collection(db,'produtos'));
+    const comFoto = snap.docs.filter(d=>d.data().foto&&d.data().foto.length>100);
+    if(!comFoto.length){log('⚠️ Nenhum produto com foto.');return;}
+    log('Encontrados '+comFoto.length+' produtos com foto. Montando ZIP...');
+
+    const zip = new JSZip();
+    const pasta = zip.folder('fotos_catalogo_fc');
+
+    comFoto.forEach((d,i)=>{
+      const p = d.data();
+      // Detecta tipo de imagem (jpeg, png, webp)
+      let ext = 'jpg';
+      let b64 = p.foto;
+      if(b64.startsWith('data:')){
+        const match = b64.match(/^data:image\/(\w+);base64,/);
+        if(match) ext = match[1]==='jpeg'?'jpg':match[1];
+        b64 = b64.replace(/^data:image\/\w+;base64,/,'');
+      }
+      const nome = (i+1).toString().padStart(3,'0')+'_'+nomeSeguro(p.nome)+'.'+ext;
+      pasta.file(nome, b64, {base64:true});
+      bar.style.width = Math.round((i+1)/comFoto.length*100)+'%';
+    });
+
+    log('Gerando arquivo ZIP...');
+    const blob = await zip.generateAsync({type:'blob', compression:'DEFLATE', compressionOptions:{level:6}});
+    download(blob, 'fotos_catalogo_'+dataHoje()+'.zip');
+    log('✅ ZIP com '+comFoto.length+' fotos exportado! ('+Math.round(blob.size/1024)+' KB)');
+    prog.style.display='none';
+  }catch(e){log('❌ Erro: '+e.message);prog.style.display='none';}
+}
+
+// ── Backup completo ────────────────────────────────────────
 window.expTudoJSON = async function(){
   log('Iniciando backup completo (JSON)...');
-  const backup = {exportadoEm: new Date().toISOString(), colecoes:{}};
+  const backup={exportadoEm:new Date().toISOString(),colecoes:{}};
   for(const c of COLS){
     try{
-      backup.colecoes[c.id] = await buscar(c.id);
-      log('  ✅ ' + c.nome + ': ' + backup.colecoes[c.id].length + ' registros');
-    }catch(e){ log('  ❌ ' + c.nome + ': ' + e.message); }
+      backup.colecoes[c.id]=await buscar(c.id);
+      log('  ✅ '+c.nome+': '+backup.colecoes[c.id].length+' registros');
+    }catch(e){log('  ❌ '+c.nome+': '+e.message);}
   }
-  download(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}), 'backup_completo_'+dataHoje()+'.json');
-  log('✅ Backup JSON completo exportado!');
+  download(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),'backup_completo_'+dataHoje()+'.json');
+  log('✅ Backup JSON completo!');
 }
 
 window.expTudoExcel = async function(){
   log('Gerando Excel completo...');
-  const wb = XLSX.utils.book_new();
+  const wb=XLSX.utils.book_new();
   for(const c of COLS){
     try{
-      const dados = await buscar(c.id);
-      if(!dados.length){ log('  ⚠️ ' + c.nome + ' sem dados'); continue; }
-      const {ws} = toSheet(dados);
-      XLSX.utils.book_append_sheet(wb, ws, c.nome.substring(0,31));
-      log('  ✅ ' + c.nome + ': ' + dados.length + ' registros');
-    }catch(e){ log('  ❌ ' + c.nome + ': ' + e.message); }
+      const dados=await buscar(c.id);
+      if(!dados.length) continue;
+      XLSX.utils.book_append_sheet(wb,toSheet(dados),c.nome.substring(0,31));
+      log('  ✅ '+c.nome+': '+dados.length+' registros');
+    }catch(e){log('  ❌ '+c.nome+': '+e.message);}
   }
-  XLSX.writeFile(wb, 'backup_completo_'+dataHoje()+'.xlsx');
+  XLSX.writeFile(wb,'backup_completo_'+dataHoje()+'.xlsx');
   log('✅ Excel completo exportado!');
+}
+
+window.expTudoComFotos = async function(){
+  log('Gerando backup completo com fotos (ZIP)...');
+  const zip=new JSZip();
+  // Dados JSON
+  const backup={exportadoEm:new Date().toISOString(),colecoes:{}};
+  for(const c of COLS){
+    try{
+      backup.colecoes[c.id]=await buscar(c.id);
+      log('  ✅ '+c.nome+': '+backup.colecoes[c.id].length+' registros');
+    }catch(e){log('  ❌ '+c.nome+': '+e.message);}
+  }
+  zip.file('dados.json', JSON.stringify(backup,null,2));
+  // Fotos
+  try{
+    const snap=await getDocs(collection(db,'produtos'));
+    const comFoto=snap.docs.filter(d=>d.data().foto&&d.data().foto.length>100);
+    const pasta=zip.folder('fotos');
+    comFoto.forEach((d,i)=>{
+      const p=d.data();
+      let ext='jpg', b64=p.foto;
+      if(b64.startsWith('data:')){
+        const m=b64.match(/^data:image\/(\w+);base64,/);
+        if(m) ext=m[1]==='jpeg'?'jpg':m[1];
+        b64=b64.replace(/^data:image\/\w+;base64,/,'');
+      }
+      pasta.file((i+1).toString().padStart(3,'0')+'_'+nomeSeguro(p.nome)+'.'+ext, b64, {base64:true});
+    });
+    log('  ✅ '+comFoto.length+' fotos adicionadas');
+  }catch(e){log('  ⚠️ Fotos: '+e.message);}
+
+  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+  download(blob,'backup_completo_com_fotos_'+dataHoje()+'.zip');
+  log('✅ Backup completo (dados + fotos) exportado! ('+Math.round(blob.size/1024/1024*10)/10+' MB)');
 }
 </script>
 </body>
